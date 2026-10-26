@@ -218,3 +218,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Smart Logistics: local environment
+.venv/
+__pycache__/
+.vscode/
+.env
+.env.*
+!.env.example
+
+# Local database and backups
+instance/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.bak
+
+# Raw data and generated reports
+/data/raw/
+/reports/
