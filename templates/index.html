@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>SmartLogistics QR | Phân loại kiện hàng</title>
+
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  >
+
+  <script
+    src="{{ url_for('static', filename='vendor/jsQR.js') }}"
+    defer
+  ></script>
+
+  <script
+    src="{{ url_for('static', filename='app.js') }}"
+    defer
+  ></script>
+
+  <script
+    src="{{ url_for('static', filename='gate_stats.js') }}"
+    defer
+  ></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SL</div>
+        <div>
+          <p class="eyebrow">SMARTLOGISTICS QR</p>
+          <h1>Trạm phân loại kiện hàng</h1>
+        </div>
+      </div>
+
+      <span id="connectionStatus" class="connection">
+        Đang kết nối…
+      </span>
+    </div>
+
+    <p class="header-description">
+      Mô phỏng phân loại theo điểm đến với ba cửa.
+      Dữ liệu tham chiếu từ Olist Brazilian E-Commerce.
+    </p>
+  </header>
+
+  <main class="container">
+    <noscript>
+      <p class="notice" data-type="error">
+        Cần bật JavaScript để sử dụng giao diện.
+      </p>
+    </noscript>
+
+    <div id="notice" class="notice" role="status" aria-live="polite">
+      Đang tải dữ liệu…
+    </div>
+
+    <div class="workspace">
+      <aside>
+        <section class="card">
+          <div class="section-heading">
+            <span class="step">01</span>
+            <h2>Phiên làm việc</h2>
+          </div>
+
+          <form id="sessionForm">
+            <label for="sessionName">Tên phiên mới</label>
+            <input
+              id="sessionName"
+              type="text"
+              maxlength="100"
+              placeholder="Ví dụ: Auto demo 01"
+              required
+            >
+            <button id="createButton" class="button primary" type="submit">
+              + Tạo phiên mới
+            </button>
+          </form>
+
+          <div class="divider"></div>
+
+          <label for="sessionSelect">Chọn phiên</label>
+          <select id="sessionSelect">
+            <option value="">Chưa chọn phiên</option>
+          </select>
+
+          <p id="sessionInfo" class="muted">Chưa chọn phiên.</p>
+          <p class="muted small">Hiển thị tối đa 50 phiên gần nhất.</p>
+
+          <div class="actions">
+            <button id="refreshButton" class="button secondary" type="button">
+              Làm mới
+            </button>
+            <button id="closeButton" class="button danger" type="button" disabled>
+              Đóng phiên
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <span class="step">02</span>
+            <h2>Nhập mã bằng tay</h2>
+          </div>
+
+          <form id="parcelForm">
+            <label for="parcelCode">Mã kiện</label>
+            <input
+              id="parcelCode"
+              type="text"
+              maxlength="64"
+              placeholder="Ví dụ: KH001"
+              autocomplete="off"
+              spellcheck="false"
+              required
+            >
+            <button id="processButton" class="button primary" type="submit" disabled>
+              Xử lý kiện
+            </button>
+          </form>
+
+          <p class="muted">
+            Chọn phiên đang mở. Một kiện chỉ được hoàn tất
+            một lần trong cùng phiên.
+          </p>
+        </section>
+      </aside>
+
+      <div class="main-column">
+        <section class="stats" aria-label="Thống kê phiên">
+          <article class="stat">
+            <span>Tổng lượt xử lý</span>
+            <strong id="total">0</strong>
+            <small>Trong phiên đang chọn</small>
+          </article>
+
+          <article class="stat success-stat">
+            <span>Thành công</span>
+            <strong id="successes">0</strong>
+            <small>Đã ghi nhận hoàn tất</small>
+          </article>
+
+          <article class="stat error-stat">
+            <span>Không thành công</span>
+            <strong id="unsuccessful">0</strong>
+            <small>Xem lý do trong lịch sử</small>
+          </article>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <span class="step">03</span>
+            <h2>Đọc một ảnh QR</h2>
+          </div>
+
+          <form id="qrForm">
+            <label for="qrFile">Chọn một ảnh chứa một mã QR</label>
+            <input
+              id="qrFile"
+              type="file"
+              accept="image/png,image/jpeg"
+              required
+            >
+            <button id="readQrButton" class="button secondary" type="submit" disabled>
+              1. Đọc ảnh QR
+            </button>
+          </form>
+
+          <p class="muted">
+            Nhận ảnh PNG hoặc JPEG, tối đa 5 MB.
+            Đọc ảnh để xem nội dung trước khi xử lý.
+          </p>
+
+          <canvas
+            id="qrPreview"
+            style="max-width:100%;max-height:300px;object-fit:contain"
+            hidden
+            aria-label="Ảnh đang được đọc QR"
+          ></canvas>
+
+          <p id="qrInfo" class="note" aria-live="polite">
+            Chưa đọc ảnh. Thao tác đọc ảnh chưa ghi lịch sử.
+          </p>
+
+          <button id="processQrButton" class="button primary" type="button" disabled>
+            Xử lý mã QR
+          </button>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <span class="step">04</span>
+            <h2>Chạy lô ảnh QR</h2>
+          </div>
+
+          <label for="batchFiles">Chọn tối đa 30 ảnh</label>
+          <input
+            id="batchFiles"
+            type="file"
+            accept="image/png,image/jpeg"
+            multiple
+          >
+
+          <label for="batchDelay">Khoảng nghỉ giữa ảnh</label>
+          <select id="batchDelay">
+            <option value="0">Không nghỉ</option>
+            <option value="600" selected>600 ms — dễ quan sát</option>
+            <option value="1200">1.200 ms — chạy chậm</option>
+          </select>
+
+          <div class="actions">
+            <button id="batchStart" class="button primary" type="button" disabled>
+              Bắt đầu lô
+            </button>
+            <button id="batchPause" class="button secondary" type="button" disabled>
+              Tạm dừng
+            </button>
+            <button id="batchClear" class="button danger" type="button" disabled>
+              Bỏ hàng đợi
+            </button>
+          </div>
+
+          <p>
+            <progress
+              id="batchProgress"
+              max="1"
+              value="0"
+              style="width:100%"
+              aria-label="Tiến độ lô"
+            ></progress>
+          </p>
+
+          <p id="batchInfo" class="note" aria-live="polite">
+            Chưa chọn ảnh.
+          </p>
+
+          <p class="muted small">
+            Chạy trên phiên đang chọn. Mỗi ảnh được đọc rồi gửi tuần tự.
+            Ảnh không đọc được QR được ghi thành lượt lỗi.
+            File ảnh hỏng được báo riêng, không tạo lượt xử lý.
+            Mỗi kiện chạy xong chuyển động mới đến ảnh tiếp theo.
+            Khoảng nghỉ được tính thêm sau chuyển động.
+            Cột Minh họa đo thời gian hiển thị trên trang, có thể dài hơn khi đổi tab.
+            Các số đo đọc ảnh và minh họa chỉ giữ trong trang hiện tại.
+            Hàng đợi giữ trong trang hiện tại; lịch sử đã xác nhận lưu ở database.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">
+                Kết quả lô ảnh trong trang hiện tại
+              </caption>
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Ảnh</th>
+                  <th>Mã đọc được</th>
+                  <th>Kết quả</th>
+                  <th>Cửa</th>
+                  <th>Đọc ảnh (ms)</th>
+                  <th>Quyết định (ms)</th>
+                  <th>Minh họa (ms)</th>
+                  <th>Chi tiết</th>
+                </tr>
+              </thead>
+              <tbody id="batchBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <span class="step">05</span>
+            <h2>Kết quả phân loại</h2>
+          </div>
+
+          <div class="motion-toolbar">
+            <div>
+              <label for="motionSpeed">Chuyển động minh họa</label>
+              <select id="motionSpeed">
+                <option value="1800" selected>Bình thường · 1,8 giây/kiện</option>
+                <option value="900">Nhanh · 0,9 giây/kiện</option>
+                <option value="0">Tắt chuyển động</option>
+              </select>
+            </div>
+
+            <span id="motionState" class="count-badge" role="status">
+              Sẵn sàng
+            </span>
+          </div>
+
+          <div id="conveyor" class="conveyor" data-state="idle">
+            <svg
+              viewBox="0 0 720 350"
+              class="conveyor-scene"
+              role="img"
+              aria-labelledby="conveyorTitle conveyorDesc"
+            >
+              <title id="conveyorTitle">
+                Băng chuyền phân loại ba cửa
+              </title>
+
+              <desc id="conveyorDesc">
+                Kiện đi từ đầu vào, qua điểm phân nhánh rồi đến cửa
+                do backend xác định. Lượt không thành công đi vào vùng kiểm tra.
+              </desc>
+
+              <defs>
+                <pattern
+                  id="rollers"
+                  width="16"
+                  height="16"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path d="M 0 0 V 16" stroke="#64748b" stroke-width="3"/>
+                </pattern>
+              </defs>
+
+              <g
+                class="belt-base"
+                fill="none"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              >
+                <path d="M 60 160 H 300"/>
+                <path d="M 300 160 L 410 65 H 545"/>
+                <path d="M 300 160 H 545"/>
+                <path d="M 300 160 L 410 255 H 545"/>
+                <path d="M 300 160 V 310 H 440"/>
+              </g>
+
+              <path
+                d="M 60 160 H 300"
+                stroke="url(#rollers)"
+                stroke-width="32"
+              />
+
+              <g
+                class="route-lines"
+                fill="none"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              >
+                <path id="route1" d="M 60 160 H 300 L 410 65 H 545"/>
+                <path id="route2" d="M 60 160 H 545"/>
+                <path id="route3" d="M 60 160 H 300 L 410 255 H 545"/>
+                <path id="routeCheck" d="M 60 160 H 300 V 310 H 440"/>
+              </g>
+
+              <text x="28" y="113" class="scene-label">ĐẦU VÀO</text>
+              <text x="245" y="113" class="scene-label">PHÂN NHÁNH</text>
+
+              <g class="scene-outlet">
+                <rect x="550" y="34" width="156" height="62" rx="10"/>
+                <text x="565" y="59">CỬA 1</text>
+                <text x="565" y="80" class="scene-city">São Paulo</text>
+              </g>
+
+              <g class="scene-outlet">
+                <rect x="550" y="129" width="156" height="62" rx="10"/>
+                <text x="565" y="154">CỬA 2</text>
+                <text x="565" y="175" class="scene-city">Rio de Janeiro</text>
+              </g>
+
+              <g class="scene-outlet">
+                <rect x="550" y="224" width="156" height="62" rx="10"/>
+                <text x="565" y="249">CỬA 3</text>
+                <text x="565" y="270" class="scene-city">Belo Horizonte</text>
+              </g>
+
+              <text x="468" y="315" class="check-label">
+                VÙNG KIỂM TRA
+              </text>
+
+              <g
+                id="motionParcel"
+                transform="translate(60 160)"
+                visibility="hidden"
+              >
+                <rect x="-35" y="-21" width="70" height="42" rx="7"/>
+                <path
+                  d="M -6 -21 V -11 H 6 V -21"
+                  fill="none"
+                  stroke="#925c22"
+                  stroke-width="2"
+                />
+                <text id="motionCode" text-anchor="middle" y="9">—</text>
+              </g>
+            </svg>
+          </div>
+
+          <p id="motionInfo" class="note" aria-live="polite">
+            Chưa có kiện mới. Lịch sử chỉ ghi sau khi mô phỏng hoàn tất.
+          </p>
+
+          <div class="gates">
+            <article class="gate" data-gate="1">
+              <span class="gate-number">01</span>
+              <h3>Cửa 1</h3>
+              <p>São Paulo</p>
+              <span class="gate-state">Chờ kết quả</span>
+            </article>
+
+            <article class="gate" data-gate="2">
+              <span class="gate-number">02</span>
+              <h3>Cửa 2</h3>
+              <p>Rio de Janeiro</p>
+              <span class="gate-state">Chờ kết quả</span>
+            </article>
+
+            <article class="gate" data-gate="3">
+              <span class="gate-number">03</span>
+              <h3>Cửa 3</h3>
+              <p>Belo Horizonte</p>
+              <span class="gate-state">Chờ kết quả</span>
+            </article>
+          </div>
+
+          <div id="latestResult" class="latest-result" aria-live="polite">
+            Chưa có kết quả mới trên màn hình.
+          </div>
+
+          <p>
+            <button
+              id="retryButton"
+              class="button primary"
+              type="button"
+              hidden
+            >
+              Gửi lại lượt chưa xác nhận
+            </button>
+          </p>
+
+          <p class="muted small">
+            Cửa tô xanh thể hiện lượt thành công vừa nhận trên màn hình.
+            Lịch sử được ghi sau khi mô phỏng hoàn tất;
+            đây là xác nhận phần mềm.
+            Thời gian minh họa không được cộng vào thời gian quyết định tại backend.
+          </p>
+        </section>
+
+        <section class="card">
+          <div class="history-heading">
+            <div>
+              <h2>Lịch sử xử lý</h2>
+              <p class="muted">
+                Mới nhất trước. Mỗi lần tải tối đa 10 lượt.
+              </p>
+            </div>
+
+            <span id="historyCount" class="count-badge">
+              0 lượt hiển thị
+            </span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">
+                Lịch sử của phiên đang chọn
+              </caption>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Mã kiện</th>
+                  <th>Điểm đến</th>
+                  <th>Cửa</th>
+                  <th>Kết quả</th>
+                  <th>Lý do</th>
+                  <th>Nguồn</th>
+                  <th>Quyết định (ms)</th>
+                  <th>Thời gian</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr>
+                  <td colspan="9">Chưa chọn phiên.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="history-footer">
+            <p class="muted small">
+              Thời gian đọc ảnh hiển thị ở phần QR.
+              Thời gian quyết định trong bảng đo tại backend,
+              không gồm đọc ảnh, truyền mạng hoặc chuyển động.
+              Mốc thời gian hiển thị theo máy của bạn.
+            </p>
+
+            <button
+              id="moreButton"
+              class="button secondary"
+              type="button"
+              disabled
+            >
+              Xem thêm
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <footer>
+      SmartLogistics QR · Đồ án mô phỏng phần mềm
+    </footer>
+  </main>
+</body>
+</html>

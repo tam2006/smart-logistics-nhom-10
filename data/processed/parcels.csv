@@ -1,0 +1,61 @@
+﻿code,order_id,destination,destination_key,state,source_status,subset
+KH001,251f7157d5e425718ae0767439991dec,São Paulo,sao paulo,SP,shipped,demo
+KH002,341d0ee42d08b192c88aaa1c360f97e9,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH003,f6679e9eb75edd0750101c5172d662a9,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH004,c94206a6d6698d5852b7e9e14bdc2e79,São Paulo,sao paulo,SP,delivered,demo
+KH005,dfbdae4128710f6f089dca71d4bc4844,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH006,f24afd66659f204e2fe3866ae39f4e20,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH007,9b8aaa74d468897a211fb359950937e5,São Paulo,sao paulo,SP,delivered,demo
+KH008,eb7333448f495b554d301e38d3da9608,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH009,8bbaf58bf6dba86510e280b874e88425,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH010,8e7f64e866bf825d3a947aceba789a11,São Paulo,sao paulo,SP,delivered,demo
+KH011,fb9bb6436441ba78b79012524ca465c1,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH012,e39540a5cc5d31832456faa0dab449c1,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH013,b7d87e06832b932da4cd4ae7dee2974f,São Paulo,sao paulo,SP,delivered,demo
+KH014,c1686c44f72ecd55b0d2d8ed6fcf8993,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH015,96c2e97254411b014e9c6497388ae8bb,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH016,bc5089284951e16d020460e18de85fad,São Paulo,sao paulo,SP,delivered,demo
+KH017,e4f0fb907ebf79c450a8646d85c36d62,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH018,b2e25deb1b41319f3f4fbb2d32926a03,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH019,726e25ef948fc66eb94deea5f2c65a89,São Paulo,sao paulo,SP,delivered,demo
+KH020,ec7fe8ab2dc8752a229cd9a28a91bc57,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH021,326a3f53e1327657d03e8ed95ffe5578,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH022,9835adc5025c5e457d80894eb4f3ed4a,São Paulo,sao paulo,SP,delivered,demo
+KH023,c348c4e34af674e33ac82ad18ce5404c,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH024,a40874087359fab9b2c8a3aef56a97ad,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH025,51bad80ba72ab8a453ed649e57f720d8,São Paulo,sao paulo,SP,delivered,demo
+KH026,c66e710fc8f55a69556bf33b68b19843,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH027,f3afa9dd5b20b5e021893b1993b7f019,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH028,7b50d6c8484155685a9780c8a85a48fc,São Paulo,sao paulo,SP,delivered,demo
+KH029,ca70cf8792727da384ba1b6e384cfbf6,Rio de Janeiro,rio de janeiro,RJ,delivered,demo
+KH030,a0fdd81ab04852a128e1ea844ccbda3f,Belo Horizonte,belo horizonte,MG,delivered,demo
+KH031,30f9a1ff42cc19d532df1d4431a9ac4d,São Paulo,sao paulo,SP,delivered,final_test
+KH032,13ab379ac762d840b29042681a1a6156,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH033,87c30aa444c21f77f5dcedb637f9ba85,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH034,1b34f3de23ae790473c7e4ef6ac0b1f1,São Paulo,sao paulo,SP,delivered,final_test
+KH035,d301e4651c2fb09b847fce76b3f73885,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH036,19c36691fd116059bf49b7960f1db743,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH037,c3c9936a34e4665a38df40a466a463ec,São Paulo,sao paulo,SP,delivered,final_test
+KH038,00f2c876aa08fbba04199823952e96c1,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH039,c170c51c1eb31dee8f0771f19fe984a6,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH040,a3016f532570aae9cecf667e2a6e06ff,São Paulo,sao paulo,SP,delivered,final_test
+KH041,e4d119e7381ee6074eb45934cad67286,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH042,e7a5701bb4e7ef276c46b8bc82100d14,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH043,ea758df7f35b0c9481727b5430b21f85,São Paulo,sao paulo,SP,delivered,final_test
+KH044,b9b67defe2c737be99d6d3fbeec2e62e,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH045,5dc0af9bde879bc9546685cc7c1035da,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH046,92448c700c5faeacccaf77cd0f5ebc68,São Paulo,sao paulo,SP,delivered,final_test
+KH047,91575acf2a356af85894e1c3b1612e81,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH048,fe76817b881fdb722620459a94dcf7d3,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH049,3ff3e0241cd468153cd4ab4f3f20a04b,São Paulo,sao paulo,SP,delivered,final_test
+KH050,6f7167ff12cbdba10fcff1ad215166b7,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH051,0b4379c15168b7275dd2ee52a06f4294,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH052,93791e16d527404f5b4e2ea370afa984,São Paulo,sao paulo,SP,delivered,final_test
+KH053,af18dcad5c76de4eec9a63dfc1672296,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH054,b60b122b336eaee3323565272f117bec,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH055,4a64a2d2b19e0614a3a20d705d5d9c56,São Paulo,sao paulo,SP,delivered,final_test
+KH056,7f2730743127811a3d561cf49acb6461,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH057,5a8f3e078b9a03b9bb16baa101e1c0ae,Belo Horizonte,belo horizonte,MG,delivered,final_test
+KH058,0e80321be8a729339d21fdcfb58967bd,São Paulo,sao paulo,SP,delivered,final_test
+KH059,cca51c8aee8800be07563b1ed2bc4bb3,Rio de Janeiro,rio de janeiro,RJ,delivered,final_test
+KH060,d4d70d9cc43aa360490c7a508acec787,Belo Horizonte,belo horizonte,MG,delivered,final_test

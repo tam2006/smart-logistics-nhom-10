@@ -1,0 +1,31 @@
+﻿code,order_id,destination,destination_key,state,source_status
+KH001,251f7157d5e425718ae0767439991dec,São Paulo,sao paulo,SP,shipped
+KH002,341d0ee42d08b192c88aaa1c360f97e9,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH003,f6679e9eb75edd0750101c5172d662a9,Belo Horizonte,belo horizonte,MG,delivered
+KH004,c94206a6d6698d5852b7e9e14bdc2e79,São Paulo,sao paulo,SP,delivered
+KH005,dfbdae4128710f6f089dca71d4bc4844,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH006,f24afd66659f204e2fe3866ae39f4e20,Belo Horizonte,belo horizonte,MG,delivered
+KH007,9b8aaa74d468897a211fb359950937e5,São Paulo,sao paulo,SP,delivered
+KH008,eb7333448f495b554d301e38d3da9608,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH009,8bbaf58bf6dba86510e280b874e88425,Belo Horizonte,belo horizonte,MG,delivered
+KH010,8e7f64e866bf825d3a947aceba789a11,São Paulo,sao paulo,SP,delivered
+KH011,fb9bb6436441ba78b79012524ca465c1,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH012,e39540a5cc5d31832456faa0dab449c1,Belo Horizonte,belo horizonte,MG,delivered
+KH013,b7d87e06832b932da4cd4ae7dee2974f,São Paulo,sao paulo,SP,delivered
+KH014,c1686c44f72ecd55b0d2d8ed6fcf8993,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH015,96c2e97254411b014e9c6497388ae8bb,Belo Horizonte,belo horizonte,MG,delivered
+KH016,bc5089284951e16d020460e18de85fad,São Paulo,sao paulo,SP,delivered
+KH017,e4f0fb907ebf79c450a8646d85c36d62,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH018,b2e25deb1b41319f3f4fbb2d32926a03,Belo Horizonte,belo horizonte,MG,delivered
+KH019,726e25ef948fc66eb94deea5f2c65a89,São Paulo,sao paulo,SP,delivered
+KH020,ec7fe8ab2dc8752a229cd9a28a91bc57,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH021,326a3f53e1327657d03e8ed95ffe5578,Belo Horizonte,belo horizonte,MG,delivered
+KH022,9835adc5025c5e457d80894eb4f3ed4a,São Paulo,sao paulo,SP,delivered
+KH023,c348c4e34af674e33ac82ad18ce5404c,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH024,a40874087359fab9b2c8a3aef56a97ad,Belo Horizonte,belo horizonte,MG,delivered
+KH025,51bad80ba72ab8a453ed649e57f720d8,São Paulo,sao paulo,SP,delivered
+KH026,c66e710fc8f55a69556bf33b68b19843,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH027,f3afa9dd5b20b5e021893b1993b7f019,Belo Horizonte,belo horizonte,MG,delivered
+KH028,7b50d6c8484155685a9780c8a85a48fc,São Paulo,sao paulo,SP,delivered
+KH029,ca70cf8792727da384ba1b6e384cfbf6,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH030,a0fdd81ab04852a128e1ea844ccbda3f,Belo Horizonte,belo horizonte,MG,delivered
