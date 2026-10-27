@@ -1,0 +1,31 @@
+﻿code,order_id,destination,destination_key,state,source_status
+KH031,30f9a1ff42cc19d532df1d4431a9ac4d,São Paulo,sao paulo,SP,delivered
+KH032,13ab379ac762d840b29042681a1a6156,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH033,87c30aa444c21f77f5dcedb637f9ba85,Belo Horizonte,belo horizonte,MG,delivered
+KH034,1b34f3de23ae790473c7e4ef6ac0b1f1,São Paulo,sao paulo,SP,delivered
+KH035,d301e4651c2fb09b847fce76b3f73885,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH036,19c36691fd116059bf49b7960f1db743,Belo Horizonte,belo horizonte,MG,delivered
+KH037,c3c9936a34e4665a38df40a466a463ec,São Paulo,sao paulo,SP,delivered
+KH038,00f2c876aa08fbba04199823952e96c1,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH039,c170c51c1eb31dee8f0771f19fe984a6,Belo Horizonte,belo horizonte,MG,delivered
+KH040,a3016f532570aae9cecf667e2a6e06ff,São Paulo,sao paulo,SP,delivered
+KH041,e4d119e7381ee6074eb45934cad67286,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH042,e7a5701bb4e7ef276c46b8bc82100d14,Belo Horizonte,belo horizonte,MG,delivered
+KH043,ea758df7f35b0c9481727b5430b21f85,São Paulo,sao paulo,SP,delivered
+KH044,b9b67defe2c737be99d6d3fbeec2e62e,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH045,5dc0af9bde879bc9546685cc7c1035da,Belo Horizonte,belo horizonte,MG,delivered
+KH046,92448c700c5faeacccaf77cd0f5ebc68,São Paulo,sao paulo,SP,delivered
+KH047,91575acf2a356af85894e1c3b1612e81,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH048,fe76817b881fdb722620459a94dcf7d3,Belo Horizonte,belo horizonte,MG,delivered
+KH049,3ff3e0241cd468153cd4ab4f3f20a04b,São Paulo,sao paulo,SP,delivered
+KH050,6f7167ff12cbdba10fcff1ad215166b7,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH051,0b4379c15168b7275dd2ee52a06f4294,Belo Horizonte,belo horizonte,MG,delivered
+KH052,93791e16d527404f5b4e2ea370afa984,São Paulo,sao paulo,SP,delivered
+KH053,af18dcad5c76de4eec9a63dfc1672296,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH054,b60b122b336eaee3323565272f117bec,Belo Horizonte,belo horizonte,MG,delivered
+KH055,4a64a2d2b19e0614a3a20d705d5d9c56,São Paulo,sao paulo,SP,delivered
+KH056,7f2730743127811a3d561cf49acb6461,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH057,5a8f3e078b9a03b9bb16baa101e1c0ae,Belo Horizonte,belo horizonte,MG,delivered
+KH058,0e80321be8a729339d21fdcfb58967bd,São Paulo,sao paulo,SP,delivered
+KH059,cca51c8aee8800be07563b1ed2bc4bb3,Rio de Janeiro,rio de janeiro,RJ,delivered
+KH060,d4d70d9cc43aa360490c7a508acec787,Belo Horizonte,belo horizonte,MG,delivered
