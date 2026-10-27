@@ -1953,3 +1953,551 @@ runTask(async () => {
   renderBatch();
   updateControls();
 })();
+
+/* BATCH_THROUGHPUT_V1: đo năng suất của toàn bộ lô mô phỏng. */
+(() => {
+  "use strict";
+
+  if (globalThis.__smartLogisticsThroughputV1) return;
+  globalThis.__smartLogisticsThroughputV1 = true;
+
+  const baseDecode = decodeImage;
+  const baseApi = api;
+  const baseRun = runBatch;
+  const baseRender = renderBatch;
+  const baseControls = updateControls;
+
+  const info = document.createElement("p");
+  info.id = "batchThroughputInfo";
+  info.className = "note";
+  info.setAttribute("aria-live", "polite");
+
+  $("batchInfo").insertAdjacentElement("afterend", info);
+
+  const download = document.createElement("button");
+  download.type = "button";
+  download.className = "button secondary";
+  download.textContent = "Tải số đo năng suất JSON";
+  download.disabled = true;
+
+  info.insertAdjacentElement("afterend", download);
+
+  function invalidate(sample, reason) {
+    if (sample && !sample.reasons.includes(reason)) {
+      sample.reasons.push(reason);
+    }
+  }
+
+  function begin() {
+    if (!batch._throughput) {
+      const session = currentSession();
+
+      batch._throughput = {
+        runId: crypto.randomUUID(),
+        start: performance.now(),
+        startWall: new Date().toISOString(),
+        origin: performance.timeOrigin,
+        end: null,
+        endWall: null,
+        lastEvent: null,
+        lastEventWall: null,
+        sessionId: batch.sessionId,
+        sessionName: batch.sessionName,
+        delayMs: Number($("batchDelay").value),
+        motionMs: Number($("motionSpeed").value),
+        reasons: [],
+        acknowledgements: new Map(),
+        fileErrors: new Set(),
+      };
+
+      if (batch.index !== 0) {
+        invalidate(batch._throughput, "partial_batch");
+      }
+
+      if (!session || session.total !== 0) {
+        invalidate(batch._throughput, "session_not_empty");
+      }
+    }
+
+    const sample = batch._throughput;
+
+    if (document.visibilityState !== "visible") {
+      invalidate(sample, "page_hidden");
+    }
+
+    return sample;
+  }
+
+  function eventTime(sample) {
+    const stamp = {
+      clock: performance.now(),
+      wall: new Date().toISOString(),
+    };
+
+    sample.lastEvent = stamp.clock;
+    sample.lastEventWall = stamp.wall;
+
+    return stamp;
+  }
+
+  function buildReport() {
+    const sample = batch._throughput;
+
+    if (!sample) return null;
+
+    const seen = new Set();
+
+    let successes = 0;
+    let confirmed = 0;
+    let fileErrors = 0;
+
+    const results = batch.entries.map((entry, index) => {
+      const result = entry.result;
+
+      const ack = result
+        ? sample.acknowledgements.get(result.request_id)
+        : null;
+
+      if (entry.phase === "Lỗi tệp") {
+        fileErrors++;
+      }
+
+      if (result) {
+        if (!ack) {
+          invalidate(sample, "missing_completion_ack");
+
+        } else if (seen.has(result.request_id)) {
+          invalidate(sample, "repeated_request_in_batch");
+
+        } else {
+          seen.add(result.request_id);
+          confirmed++;
+
+          if (
+            result.success === true ||
+            result.success === 1
+          ) {
+            successes++;
+          }
+        }
+      }
+
+      return {
+        index: index + 1,
+        image_name: entry.file.name,
+
+        image_sha256:
+          entry._savedMeasurement?.image_sha256 || null,
+
+        decoded_code: entry.code,
+        request_id: result?.request_id || null,
+        history_id: result?.id ?? null,
+        status: result?.status || entry.phase,
+        success: Boolean(result?.success),
+        gate: result?.gate ?? null,
+
+        completion_ack_ms_from_start: ack
+          ? ack.clock - sample.start
+          : null,
+
+        error: entry.error || null,
+      };
+    });
+
+    const finished =
+      batch.index === batch.entries.length &&
+      batch.entries.length > 0;
+
+    if (
+      finished &&
+      sample.end === null &&
+      sample.lastEvent !== null
+    ) {
+      sample.end = sample.lastEvent;
+      sample.endWall = sample.lastEventWall;
+    }
+
+    if (sample.origin !== performance.timeOrigin) {
+      invalidate(sample, "clock_context_changed");
+    }
+
+    if (sample.sessionId !== batch.sessionId) {
+      invalidate(sample, "session_changed");
+    }
+
+    if (
+      finished &&
+      confirmed + fileErrors !== batch.entries.length
+    ) {
+      invalidate(sample, "incomplete_outcomes");
+    }
+
+    if (
+      finished &&
+      fileErrors !== sample.fileErrors.size
+    ) {
+      invalidate(sample, "unobserved_file_error");
+    }
+
+    const elapsed = sample.end === null
+      ? null
+      : sample.end - sample.start;
+
+    if (
+      finished &&
+      (!Number.isFinite(elapsed) || elapsed <= 0)
+    ) {
+      invalidate(sample, "invalid_elapsed_time");
+    }
+
+    const valid =
+      finished &&
+      elapsed > 0 &&
+      sample.reasons.length === 0;
+
+    return {
+      schema_version: 1,
+
+      metric: "batch_simulation_throughput",
+
+      measurement_version: "batch-throughput-v1",
+
+      source_revision:
+        "base-322511d-plus-batch-throughput-v1",
+
+      run_id: sample.runId,
+      batch_id: batch.id,
+      session_id: sample.sessionId,
+      session_name: sample.sessionName,
+      started_at: sample.startWall,
+      finished_at: sample.endWall,
+
+      finished,
+      valid,
+
+      invalid_reasons: [...sample.reasons],
+
+      elapsed_ms: elapsed,
+
+      input_images: batch.entries.length,
+
+      confirmed_history_rows: confirmed,
+
+      successful_parcels: successes,
+
+      business_error_rows: confirmed - successes,
+
+      file_errors: fileErrors,
+
+      simulated_throughput_parcels_per_min: valid
+        ? successes * 60000 / elapsed
+        : null,
+
+      confirmed_outcomes_per_min: valid
+        ? confirmed * 60000 / elapsed
+        : null,
+
+      configured_delay_ms: sample.delayMs,
+
+      configured_animation_ms: sample.motionMs,
+
+      decoder_version:
+        window.SmartLogisticsQR?.decoderVersion || null,
+
+      user_agent: navigator.userAgent,
+
+      definition:
+        "Từ trước khi xử lý ảnh đầu tiên đến phản hồi " +
+        "hoàn tất cuối cùng hoặc lỗi tệp cuối cùng. " +
+        "Tính hoạt ảnh, khoảng nghỉ giữa ảnh và các bước " +
+        "xử lý xen giữa; không tính khoảng nghỉ sau ảnh cuối. " +
+        "Tử số năng suất là số kiện thành công " +
+        "đã được backend xác nhận.",
+
+      limitation:
+        "Năng suất mô phỏng phần mềm trong điều kiện đã ghi; " +
+        "không đại diện năng suất băng chuyền thật " +
+        "và không dùng thay thời gian QR đến xác định cửa " +
+        "để so sánh baseline.",
+
+      results,
+    };
+  }
+
+  function renderThroughput() {
+    const report = buildReport();
+
+    download.disabled =
+      !report?.finished ||
+      batch.running ||
+      busy;
+
+    if (!report) {
+      info.textContent =
+        "Chưa có số đo năng suất. " +
+        "Tạo phiên mới, chọn ảnh rồi chạy lô.";
+
+    } else if (!report.finished) {
+      info.textContent =
+        `Đang theo dõi lô: ` +
+        `${report.successful_parcels} ` +
+        "kiện thành công đã xác nhận.";
+
+      if (report.invalid_reasons.length) {
+        info.textContent +=
+          " Số đo đã gián đoạn: " +
+          report.invalid_reasons.join(", ") +
+          ".";
+      }
+
+    } else if (!report.valid) {
+      info.textContent =
+        "Lô đã kết thúc nhưng số đo năng suất " +
+        "không hợp lệ: " +
+        report.invalid_reasons.join(", ") +
+        ". Dùng phiên mới và chạy lại để đo chính thức.";
+
+    } else {
+      info.textContent =
+        "Năng suất mô phỏng: " +
+        report.simulated_throughput_parcels_per_min
+          .toFixed(2) +
+        " kiện/phút · " +
+
+        `${report.successful_parcels} kiện thành công / ` +
+        `${(report.elapsed_ms / 1000).toFixed(2)} giây · ` +
+
+        `${report.business_error_rows} lượt lỗi nghiệp vụ · ` +
+        `${report.file_errors} lỗi tệp. ` +
+
+        `Nghỉ ${report.configured_delay_ms} ms; ` +
+        "hoạt ảnh cấu hình " +
+        `${report.configured_animation_ms} ms.`;
+    }
+  }
+
+  decodeImage = async function (file, canvas) {
+    const sample = batch.running ? begin() : null;
+    const index = batch.index;
+
+    try {
+      return await baseDecode(file, canvas);
+
+    } catch (error) {
+      if (sample) {
+        sample.fileErrors.add(index);
+
+        const stamp = eventTime(sample);
+
+        if (index === batch.entries.length - 1) {
+          sample.end = stamp.clock;
+          sample.endWall = stamp.wall;
+        }
+      }
+
+      throw error;
+    }
+  };
+
+  api = async function (url, options = {}) {
+    const sample = batch._throughput;
+    const waiting = pendingRequest;
+
+    const ownRequest =
+      sample &&
+      waiting?._batchId === batch.id;
+
+    const complete =
+      /^\/api\/history\/[^/]+\/complete$/.test(url);
+
+    const prepare =
+      url === "/api/history/prepare";
+
+    try {
+      const response = await baseApi(url, options);
+
+      if (
+        ownRequest &&
+        (
+          complete ||
+          (prepare && response.phase === "completed")
+        )
+      ) {
+        const result = complete
+          ? response
+          : response.result;
+
+        if (prepare) {
+          invalidate(
+            sample,
+            "recovered_completed_request"
+          );
+        }
+
+        if (
+          result?.request_id !== waiting.request_id ||
+          result?.session_id !== sample.sessionId
+        ) {
+          invalidate(
+            sample,
+            "unexpected_completion_response"
+          );
+
+        } else if (
+          !sample.acknowledgements.has(
+            result.request_id
+          )
+        ) {
+          const stamp = eventTime(sample);
+
+          sample.acknowledgements.set(
+            result.request_id,
+            stamp
+          );
+
+          if (
+            waiting._batchIndex ===
+            batch.entries.length - 1
+          ) {
+            sample.end = stamp.clock;
+            sample.endWall = stamp.wall;
+          }
+        }
+      }
+
+      return response;
+
+    } catch (error) {
+      if (
+        sample &&
+        sample.end === null &&
+        (batch.running || ownRequest)
+      ) {
+        invalidate(sample, "api_error");
+      }
+
+      throw error;
+    }
+  };
+
+  runBatch = async function (...args) {
+    if (batch._throughput) {
+      invalidate(
+        batch._throughput,
+        "resumed_batch"
+      );
+    }
+
+    try {
+      return await baseRun(...args);
+
+    } catch (error) {
+      invalidate(
+        batch._throughput,
+        "run_interrupted"
+      );
+
+      throw error;
+
+    } finally {
+      const sample = batch._throughput;
+
+      if (sample) {
+        if (batch.index < batch.entries.length) {
+          invalidate(sample, "batch_paused");
+        }
+
+        if (!lastRefreshOk) {
+          invalidate(
+            sample,
+            "dashboard_refresh_failed"
+          );
+        }
+      }
+
+      renderThroughput();
+    }
+  };
+
+  renderBatch = function (...args) {
+    const result = baseRender(...args);
+    renderThroughput();
+
+    return result;
+  };
+
+  updateControls = function (...args) {
+    const result = baseControls(...args);
+    renderThroughput();
+
+    return result;
+  };
+
+  $("batchPause").addEventListener(
+    "click",
+    () => {
+      const sample = batch._throughput;
+
+      if (sample && sample.end === null) {
+        invalidate(sample, "pause_requested");
+      }
+
+      renderThroughput();
+    }
+  );
+
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      const sample = batch._throughput;
+
+      if (
+        sample &&
+        sample.end === null &&
+        document.visibilityState !== "visible"
+      ) {
+        invalidate(sample, "page_hidden");
+        renderThroughput();
+      }
+    }
+  );
+
+  download.addEventListener(
+    "click",
+    () => {
+      const report = buildReport();
+
+      if (
+        !report?.finished ||
+        batch.running ||
+        busy
+      ) {
+        return;
+      }
+
+      const url = URL.createObjectURL(
+        new Blob(
+          [JSON.stringify(report, null, 2)],
+          { type: "application/json" }
+        )
+      );
+
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download =
+        `batch_throughput_${report.run_id}.json`;
+
+      document.body.append(link);
+      link.click();
+      link.remove();
+
+      setTimeout(
+        () => URL.revokeObjectURL(url),
+        1000
+      );
+    }
+  );
+
+  renderThroughput();
+})();
