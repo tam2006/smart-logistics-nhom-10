@@ -1,3 +1,5 @@
+import csv
+import io
 import hashlib
 import json
 import math
@@ -867,3 +869,74 @@ def xem_lich_su():
             page[-1]["id"] if has_more else None
         ),
     )
+    @history_api.get("/api/history/export-csv")
+def export_session_csv():
+    session_id = request.args.get("session_id")
+    
+    if not session_id:
+        return loi("invalid_input", "Chưa chọn phiên làm việc.", 400)
+
+    try:
+        sid = str(UUID(session_id))
+    except ValueError:
+        return loi("invalid_input", "session_id phải là UUID hợp lệ.", 400)
+
+    with closing(ket_noi()) as conn:
+        session = conn.execute(
+            "SELECT id FROM sessions WHERE id = ?",
+            (sid,),
+        ).fetchone()
+
+        if session is None:
+            return loi("session_not_found", "Phiên chạy không tồn tại.", 404)
+
+        # LẤY TOÀN BỘ LỊCH SỬ CỦA PHIÊN (Không phân trang, lấy hết tất cả các trang)
+        rows = conn.execute(
+            """
+            SELECT * FROM history
+            WHERE session_id = ?
+            ORDER BY id DESC
+            """,
+            (sid,),
+        ).fetchall()
+
+        if not rows:
+            return loi("empty_session", "Phiên hiện tại không có dữ liệu lịch sử.", 404)
+
+        output = io.StringIO()
+        writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+
+        # Tiêu đề cột đã thống nhất: Mã lượt, Mã kiện, Điểm đến, Cửa, Trạng thái, Lý do, Nguồn nhập, Thời gian ghi nhận
+        writer.writerow([
+            "Mã lượt", 
+            "Mã kiện", 
+            "Điểm đến", 
+            "Cửa", 
+            "Trạng thái", 
+            "Lý do", 
+            "Nguồn nhập", 
+            "Thời gian ghi nhận"
+        ])
+
+        for row in rows:
+            res = dict(row)
+            writer.writerow([
+                res.get("request_id", ""),
+                res.get("code", ""),
+                res.get("destination", ""),
+                res.get("gate", ""),
+                res.get("status", ""),
+                res.get("reason", ""),
+                res.get("source", ""),
+                res.get("created_at", "")
+            ])
+
+        csv_data = output.getvalue().encode("utf-8-sig")
+        output.close()
+
+        filename = f"lich_su_phien_{sid}.csv"
+        return Response(
+            csv_data,
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
