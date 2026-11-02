@@ -306,10 +306,26 @@ function renderSessions(preferredId) {
   sessions.forEach((session) => {
     const option = document.createElement("option");
 
+    const total =
+      Number.isSafeInteger(session.total) && session.total >= 0
+        ? `${session.total} lượt`
+        : "Chưa rõ số lượt";
+
+    const state = session.status === "active"
+      ? "Đang mở"
+      : session.status === "closed"
+        ? "Đã đóng"
+        : "Chưa rõ trạng thái";
+
+    const shortId = String(session.id).slice(0, 8);
+
     option.value = session.id;
+
     option.textContent =
-      `${session.name} · ` +
-      (session.status === "active" ? "Đang mở" : "Đã đóng");
+      `${total} · ${state} · #${shortId} · ${session.name}`;
+
+    option.title =
+      `${session.name} | ${state} | ${total} | ID: ${session.id}`;
 
     select.append(option);
   });
@@ -321,8 +337,15 @@ function renderSessions(preferredId) {
     )
   ) {
     const option = document.createElement("option");
+    const shortId = String(pendingRequest.session_id).slice(0, 8);
+
     option.value = pendingRequest.session_id;
-    option.textContent = "Phiên có lượt chưa xác nhận";
+
+    option.textContent =
+      `Chưa xác nhận · #${shortId} · Phiên có lượt đang chờ`;
+
+    option.title = `ID: ${pendingRequest.session_id}`;
+
     select.append(option);
   }
 

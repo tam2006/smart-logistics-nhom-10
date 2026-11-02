@@ -4,7 +4,9 @@ Trạng thái: Bản dự thảo thiết kế chung.
 Căn cứ yêu cầu: project-description.md.
 
 Tài liệu mô tả cấu trúc mà nhóm dùng để hoàn thiện và kiểm tra demo.
-Trạng thái triển khai phải được đối chiếu với source và kết quả kiểm thử riêng.
+Trạng thái triển khai được theo dõi tại implementation-status.md,
+dựa trên source và kết quả kiểm thử.
+
 Các nhánh của thành viên chưa được kiểm tra không được mặc định đã tích hợp.
 
 ## 1. Kiến trúc hệ thống
@@ -45,6 +47,9 @@ Frontend không được tự chọn cửa rồi yêu cầu backend ghi thành c
 | Lọc và xuất lịch sử | Phiên, điều kiện lọc hoặc yêu cầu xuất | Kết quả đầy đủ theo phạm vi đã xác định |
 | Kiểm thử và đánh giá | Đáp án, lịch sử, số đo và baseline | Kết quả đối chiếu và báo cáo |
 
+Bộ lọc lịch sử và xuất CSV trên web là phần mở rộng.
+Trạng thái của chúng được kiểm tra riêng với chức năng bắt buộc.
+
 ## 3. Cấu trúc source
 
 | Vị trí | Vai trò |
@@ -68,11 +73,15 @@ Frontend không được tự chọn cửa rồi yêu cầu backend ghi thành c
 | `xuat_va_doi_chieu.py` | Xuất lịch sử và đối chiếu đáp án |
 | `nhap_so_do.py` | Kiểm tra số đo QR, năng suất và số liệu nguồn |
 | `tong_hop_danh_gia.py` | Tổng hợp kết quả và tạo báo cáo |
-| `docs/` | Define, Design, dữ liệu, pipeline, đánh giá và hướng dẫn |
+| `docs/project-description.md` | Phạm vi, yêu cầu và tiêu chí hoàn thành |
+| `docs/system-design.md` | Kiến trúc, module, dữ liệu và pipeline |
+| `docs/implementation-status.md` | Đối chiếu triển khai và minh chứng |
 
 Các công cụ khởi tạo và chuyển đổi dữ liệu nằm tại thư mục gốc theo source dự án.
 
-Tên file mở rộng như `static/history_filters.js`, `static/history_export.js` và `khoi_tao_project.py` phải được đối chiếu với nhánh thành viên trước khi ghi nhận đã tích hợp.
+Tên file mở rộng như `static/history_filters.js`,
+`static/history_export.js` và `khoi_tao_project.py`
+phải được đối chiếu với nhánh thành viên trước khi ghi nhận đã tích hợp.
 
 ## 4. Thiết kế dữ liệu
 
@@ -95,10 +104,12 @@ Tên file mở rộng như `static/history_filters.js`, `static/history_export.j
 - Yêu cầu xử lý và lịch sử gắn với một phiên.
 - Số đo QR gắn với lượt xử lý tương ứng qua `request_id`.
 - Một kiện chỉ được ghi thành công một lần trong cùng phiên.
+- Mỗi phiên chỉ cho phép một yêu cầu chưa hoàn tất tại một thời điểm.
 - Lịch sử vẫn phải biểu diễn được mã lạ hoặc mã sai; không bắt buộc mọi mã trong lịch sử đều có trong bảng kiện.
 - Số đếm trên giao diện phải đối chiếu được với lịch sử đã lưu.
 
-Chi tiết kiểu dữ liệu và ràng buộc SQL phải được cập nhật theo các script khởi tạo và nâng cấp database.
+Chi tiết kiểu dữ liệu, khóa và ràng buộc SQL phải được đối chiếu
+với các script khởi tạo và nâng cấp database.
 
 ## 5. Pipeline chuẩn bị dữ liệu
 
@@ -115,54 +126,91 @@ Chi tiết kiểu dữ liệu và ràng buộc SQL phải được cập nhật 
 Điểm đến được tra từ database.
 QR chỉ cần chứa mã kiện.
 
+Bộ demo và bộ kiểm thử cuối cùng phải tách biệt theo Define.
+Đáp án được chốt trước khi đánh giá, không sửa theo kết quả ứng dụng.
+
 ## 6. Pipeline xử lý một kiện
 
 ```mermaid
 flowchart TD
     A["Đọc QR hoặc nhập mã"] --> B["Gửi prepare với request_id"]
-    B --> C{"Kiện hợp lệ và chưa thành công trong phiên?"}
-    C -->|"Có"| D["Nhận cửa và mô phỏng chuyển kiện"]
-    C -->|"Không"| E["Hiện lý do; không chuyển vào ba cửa"]
+    B --> C{"Phản hồi prepare"}
+    C -->|"Đã hoàn tất"| H["Cập nhật lịch sử và thống kê"]
+    C -->|"Sẵn sàng phân loại"| D["Mô phỏng chuyển kiện tới cửa"]
+    C -->|"Lỗi nghiệp vụ đã chuẩn bị"| E["Hiện lý do; không chuyển vào ba cửa"]
+    C -->|"Yêu cầu bị từ chối"| J["Hiện thông báo; không gửi complete"]
     D --> F["Gửi complete cùng request_id"]
     E --> F
-    F --> G["Backend ghi kết quả hoàn tất một lần"]
-    G --> H["Cập nhật lịch sử và thống kê"]
-    B -->|"Mất kết nối"| I["Giữ yêu cầu để thử lại"]
+    F -->|"Thành công"| G["Kết quả hoàn tất được lưu một lần"]
+    G --> H
+    B -->|"Mất phản hồi"| I["Giữ request_id để xác minh hoặc thử lại"]
     F -->|"Mất phản hồi"| I
 ```
 
 ### Thứ tự kiểm tra nghiệp vụ
 
-1. Kiểm tra phiên có tồn tại và được phép xử lý.
-2. Kiểm tra yêu cầu gửi lại theo `request_id`.
-3. Kiểm tra kết quả đọc QR và định dạng mã.
-4. Tra cứu kiện.
-5. Kiểm tra điểm đến.
-6. Tra quy tắc cửa.
-7. Kiểm tra kiện đã thành công trong phiên.
-8. Trả kết quả chuẩn bị để frontend hiển thị.
-9. Xác nhận hoàn tất và ghi lịch sử.
+1. Kiểm tra cấu trúc đầu vào, UUID, kiểu và độ dài mã kiện, nguồn nhập.
+2. Tìm yêu cầu cũ theo `request_id` và đối chiếu nội dung. Nếu đã hoàn tất thì trả kết quả cũ; nếu đang chờ thì trả trạng thái chờ; khác nội dung thì từ chối.
+3. Với yêu cầu mới, kiểm tra phiên tồn tại và đang mở.
+4. Kiểm tra phiên không còn yêu cầu khác chưa hoàn tất.
+5. Kiểm tra kết quả đọc QR, định dạng mã và tra cứu kiện.
+6. Kiểm tra thông tin điểm đến và quy tắc cửa.
+7. Kiểm tra kiện đã thành công trong cùng phiên.
+8. Lưu kết quả chuẩn bị và trả về cho frontend.
+9. Khi nhận `complete`, ghi lịch sử, số đo nếu có và trạng thái hoàn tất trong cùng giao dịch. Gửi lại yêu cầu đã hoàn tất chỉ trả kết quả cũ.
 
-Nếu chưa liên lạc được với backend, frontend không được tự tạo kết quả hoàn tất.
+Nếu chưa liên lạc được với backend,
+frontend không được tự tạo kết quả hoàn tất.
+
+### Phân biệt lỗi nghiệp vụ và yêu cầu bị từ chối
+
+Lỗi nghiệp vụ là kết quả của yêu cầu đã được chuẩn bị,
+chẳng hạn không đọc được QR, mã sai định dạng, không tìm thấy kiện,
+thiếu điểm đến, chưa cấu hình cửa hoặc kiện bị trùng.
+
+Frontend dùng `request_id` của yêu cầu đó để xác nhận hoàn tất
+và ghi lịch sử lỗi.
+
+Nếu API từ chối yêu cầu vì đầu vào không hợp lệ, phiên không tồn tại,
+phiên đã đóng, phiên đang bận hoặc `request_id` xung đột,
+frontend hiển thị thông báo và không tự gửi `complete`
+cho thao tác bị từ chối.
+
+Nếu mất kết nối hoặc mất phản hồi, frontend giữ nguyên `request_id`
+để xác minh hoặc thử lại, không tự coi lượt xử lý đã hoàn tất.
 
 ### Gửi lại yêu cầu
 
 - Giữ nguyên `request_id` khi thử lại cùng một thao tác.
-- Nếu yêu cầu đã hoàn tất, backend trả kết quả đã lưu.
+- Gửi lại `prepare` phải giữ nguyên phiên, mã kiện và nguồn nhập.
+- Nếu yêu cầu đã hoàn tất, backend trả kết quả đã lưu, kể cả khi phiên sau đó đã đóng.
 - Không chạy lại mô phỏng như một kiện mới khi nhận kết quả đã hoàn tất.
 - Không tạo thêm lịch sử, số đo hoặc tăng số thành công.
-- Cùng `request_id` nhưng nội dung yêu cầu khác phải bị từ chối.
+- Cùng `request_id` nhưng nội dung `prepare` khác phải bị từ chối.
+- Gửi lại `complete` của lượt đã hoàn tất không ghi đè số đo cũ.
+
+### Quản lý trạng thái phiên
+
+- Phiên mới có trạng thái `active`.
+- Phiên đã đóng có trạng thái `closed`.
+- Không tạo lượt xử lý mới trong phiên đã đóng.
+- Không đóng phiên khi còn yêu cầu chưa hoàn tất.
+- Gửi lại thao tác đóng một phiên đã đóng trả trạng thái phiên hiện có.
+- Có thể truy vấn yêu cầu đang chờ để phục hồi ngữ cảnh xử lý.
 
 ## 7. Xử lý theo lô
 
 1. Người dùng chọn phiên và tập ảnh.
 2. Ứng dụng tạo hàng đợi.
 3. Đọc QR của ảnh hiện tại.
-4. Gửi prepare.
+4. Gửi `prepare`.
 5. Hiển thị và mô phỏng theo kết quả.
-6. Gửi complete.
+6. Gửi `complete` nếu yêu cầu đang chờ hoàn tất.
 7. Cập nhật kết quả ảnh và thống kê.
 8. Chờ khoảng nghỉ cấu hình giữa các ảnh rồi chuyển ảnh tiếp theo.
+
+Nếu nhận kết quả đã hoàn tất ở bước `prepare`,
+không chạy lại mô phỏng và không tạo thêm lượt.
 
 ### Quy tắc
 
@@ -172,38 +220,112 @@ Nếu chưa liên lạc được với backend, frontend không được tự t�
 - Tệp ảnh lỗi được báo riêng.
 - Không đọc được QR là kết quả cần kiểm tra nghiệp vụ, khác với lỗi đọc tệp.
 - Khi có yêu cầu chưa xác định đã hoàn tất hay chưa, phải giải quyết yêu cầu đó trước khi tạo thao tác mới.
+- Yêu cầu bị API từ chối không được coi là kiện đã hoàn tất.
+- Không chờ khoảng nghỉ sau ảnh cuối.
 
 ## 8. Giao tiếp frontend–backend
 
+### Các API
+
 | API | Vai trò |
 |---|---|
-| `GET /api/health` | Kiểm tra backend và trạng thái dịch vụ theo chức năng hiện có |
+| `GET /api/health` | Kiểm tra backend theo chức năng hiện có; chi tiết cần đối chiếu app.py |
+| `POST /api/sessions` | Tạo phiên mới |
+| `GET /api/sessions` | Lấy tối đa 50 phiên gần nhất, kèm số lượt đang chờ và thống kê lịch sử |
+| `POST /api/sessions/<session_id>/close` | Đóng phiên nếu không còn yêu cầu chưa hoàn tất |
+| `GET /api/sessions/<session_id>/pending` | Lấy thông tin yêu cầu chưa hoàn tất để phục hồi |
 | `POST /api/history/prepare` | Kiểm tra và chuẩn bị kết quả xử lý |
 | `POST /api/history/<request_id>/complete` | Xác nhận hoàn tất theo yêu cầu đã chuẩn bị |
-| `GET /api/history` | Lấy lịch sử theo phiên, có phân trang |
-| `GET /api/history/<request_id>/measurement` | Lấy số đo đã lưu của lượt xử lý |
+| `GET /api/history` | Lấy lịch sử, có thể giới hạn theo phiên và phân trang |
+| `GET /api/history/<request_id>/measurement` | Lấy số đo đã lưu của lượt hoàn tất |
 
-Các API tạo, lấy và đóng phiên được quản lý tại `session_routes.py`.
-Tên đường dẫn, tham số phân trang và cấu trúc phản hồi phải được đối chiếu với source khi chốt hợp đồng API chi tiết.
+`POST /api/history` là đường dẫn cũ.
+Backend từ chối xử lý trực tiếp và yêu cầu dùng `prepare` rồi `complete`.
+
+### Tạo phiên
+
+Gửi đối tượng JSON có trường `name`.
+
+- Tên phiên sau khi bỏ khoảng trắng hai đầu dài từ 1 đến 100 ký tự.
+- Nếu không có trường `name`, dùng tên mặc định.
+- Backend tạo UUID và thời điểm tạo.
+- Phiên mới có trạng thái `active`.
 
 ### Yêu cầu prepare
 
 Các thông tin chính:
 
-- `request_id`: mã yêu cầu.
-- `session_id`: phiên đang xử lý.
-- `code`: mã kiện đọc được hoặc nhập tay.
-- `source`: nguồn nhập.
+- `request_id`: UUID của yêu cầu.
+- `session_id`: UUID của phiên.
+- `code`: chuỗi mã kiện, tối đa 64 ký tự.
+- `source`: nguồn nhập, nhận `manual`, `qr`, `auto` hoặc `api`.
 
-Phản hồi cần cho biết kết quả chuẩn bị hoặc kết quả đã hoàn tất nếu là yêu cầu gửi lại.
+Luồng giao diện nhập tay dùng `manual`.
+Luồng đọc QR từ ảnh dùng `qr`, gồm cả chế độ chọn một ảnh và chạy lô.
+
+Mã kiện hợp lệ theo nghiệp vụ có dạng `KH` và ba chữ số.
+Chuỗi rỗng từ nguồn `qr` được xử lý thành lỗi không đọc được QR.
+
+Phản hồi thành công có:
+
+- `phase`: `pending` hoặc `completed`.
+- `result`: thông tin kết quả tương ứng.
+
+Với lượt hợp lệ đang chờ mô phỏng,
+trạng thái trả về là `ready` và chưa tính thành công.
+
+Yêu cầu mới được chuẩn bị trả HTTP 201.
+Yêu cầu cũ có nội dung khớp trả HTTP 200.
 
 ### Yêu cầu complete
 
-- Dùng cùng `request_id` của bước prepare.
-- Có thể gửi số đo QR khi đúng nguồn và đúng định dạng.
+- Dùng cùng `request_id` của bước `prepare`.
+- Có thể không gửi body để tương thích với luồng chưa có số đo.
+- Nếu gửi body, chỉ nhận đối tượng JSON với trường tùy chọn `measurement`.
+- Chỉ lượt có nguồn `qr` mới được gửi số đo QR.
 - Backend dùng kết quả đã chuẩn bị, không nhận cửa do frontend tự quyết định.
-- Ghi lịch sử, số đo và trạng thái hoàn tất trong giao dịch nhất quán.
-- Nếu dữ liệu gửi lên không hợp lệ, không để lại trạng thái ghi dở dang.
+- Kiểm tra lại chống trùng trước khi ghi thành công.
+- Ghi lịch sử, số đo và trạng thái hoàn tất trong cùng giao dịch.
+- Nếu số đo không hợp lệ, không ghi lịch sử hoặc hoàn tất dở dang.
+- Lượt hoàn tất mới trả HTTP 201.
+- Lượt đã hoàn tất trả kết quả cũ với HTTP 200.
+
+### Số đo QR
+
+Số đo gồm phiên bản, chế độ đọc, tên ảnh, SHA256 nếu có,
+thời gian đọc ảnh, thời gian prepare, thời gian xác định cửa,
+thời gian hoạt ảnh và trạng thái hợp lệ.
+
+Các điều kiện chính:
+
+- Phiên bản số đo là số nguyên 1.
+- Chế độ là `single` hoặc `batch`.
+- Các thời gian được cung cấp phải hữu hạn và không âm.
+- Số đo hợp lệ phải có đủ các trường thời gian.
+- Số đo bị gián đoạn phải ghi lý do.
+- Số đo hợp lệ không có lý do gián đoạn.
+- SHA256 nếu được cung cấp phải đúng định dạng.
+
+Kiểm tra định dạng số đo không thay thế việc đối chiếu tệp nguồn
+và điều kiện chạy trong công cụ đánh giá.
+
+### Phân trang lịch sử
+
+Các tham số:
+
+- `session_id`: UUID phiên; giao diện lịch sử theo phiên phải gửi tham số này.
+- `limit`: số nguyên từ 1 đến 100, mặc định 100.
+- `before_id`: ID nguyên dương; lấy các bản ghi có ID nhỏ hơn giá trị này.
+
+Phản hồi gồm:
+
+- `history`: các bản ghi của trang.
+- `limit`: giới hạn đã dùng.
+- `has_more`: còn trang tiếp theo hay không.
+- `next_before_id`: mốc để lấy trang tiếp theo, hoặc null.
+
+Lịch sử được sắp theo ID giảm dần.
+Các lần lấy trang tiếp theo phải giữ nguyên phiên.
 
 ## 9. Lịch sử, bộ lọc và xuất CSV
 
@@ -221,6 +343,9 @@ Phản hồi cần cho biết kết quả chuẩn bị hoặc kết quả đã h
 - Kết hợp điều kiện và có thao tác xoá bộ lọc.
 - Áp dụng trên toàn bộ lịch sử phiên, gồm các trang chưa hiển thị.
 - Chuyển phiên không giữ nhầm kết quả từ phiên trước.
+
+Cách triển khai bộ lọc phải được đối chiếu với nhánh thành viên.
+Không mặc định API lịch sử hiện tại đã hỗ trợ mọi điều kiện lọc.
 
 ### Xuất CSV trên web
 
@@ -243,17 +368,32 @@ Không tự đổi ý nghĩa “xuất toàn bộ phiên” thành “xuất tra
 - Lưu cả ảnh đọc sai hoặc không đọc được.
 - Kiểm tra tên ảnh và dấu vết SHA256 để đối chiếu đúng đầu vào.
 - Tách kết quả ảnh có QR với kết quả từ chối ảnh không QR.
+- Báo riêng ảnh thiếu và lỗi tệp.
+- Không chỉ chọn ảnh đọc thành công để tính độ chính xác.
 
 ### Thời gian xác định cửa
 
-Đo từ lúc xử lý ảnh QR đến khi nhận kết quả cửa từ backend theo phạm vi phép đo đã triển khai.
-Báo rõ điểm bắt đầu/kết thúc và các bước nằm ngoài phép đo.
+Phạm vi cần thể hiện rõ là từ bước đọc ảnh QR
+đến khi frontend nhận kết quả cửa từ `prepare`.
 
-Không cộng thời gian hoạt ảnh vào phép so sánh xác định cửa với baseline.
+Đối chiếu điểm bắt đầu, kết thúc và các bước ngoài phép đo
+với phần đo trong frontend trước khi chốt kết quả.
+
+Phân biệt:
+
+- Thời gian đọc ảnh QR.
+- Thời gian gửi và nhận `prepare`.
+- Thời gian toàn bước xác định cửa.
+- Thời gian quyết định đo tại backend.
+- Thời gian hoạt ảnh.
+
+Không cộng thời gian hoạt ảnh vào phép so sánh
+xác định cửa với baseline.
 
 ### Năng suất mô phỏng
 
-Đo thời lượng lô từ trước xử lý ảnh đầu đến phản hồi hoàn tất cuối hoặc kết thúc lỗi tệp cuối.
+Đo thời lượng lô từ trước xử lý ảnh đầu
+đến phản hồi hoàn tất cuối hoặc kết thúc lỗi tệp cuối.
 
 - Tử số: số kiện thành công được xác nhận hoàn tất.
 - Mẫu số: thời lượng lô tính bằng phút.
@@ -262,19 +402,36 @@ Không cộng thời gian hoạt ảnh vào phép so sánh xác định cửa v�
 - Ghi số ảnh, số thành công, lỗi nghiệp vụ, lỗi tệp và cấu hình chạy.
 - Lần bị đổi tab, tạm dừng hoặc gián đoạn phải được nhận diện và loại khỏi kết luận năng suất chính thức.
 
+Năng suất này mô tả lần chạy mô phỏng với cấu hình đã ghi.
+Không coi là năng suất băng chuyền vật lý.
+
+### Baseline thủ công
+
+- Dùng cùng bộ kiện và quy tắc với phương pháp tự động.
+- Người tham gia đọc mã trên nhãn, tra bảng và chọn cửa.
+- Đo từ lúc hiển thị mã đến khi người tham gia chọn cửa.
+- Ghi lựa chọn, đáp án, thời gian, thứ tự và seed xáo trộn.
+- Không gộp bài thủ công chỉ đọc điểm đến vào bài đo đọc mã và tra bảng.
+- Báo cáo điều kiện và khác biệt thao tác giữa hai phương pháp.
+- Không khẳng định mức cải thiện trước khi có dữ liệu.
+- Thực hiện nhiều lượt với thứ tự thay đổi và giữ cả kết quả không thuận lợi.
+
 ### Tổng hợp báo cáo
 
 1. Xuất lịch sử và số đo của phiên.
 2. Đối chiếu với đáp án định tuyến.
-3. Nhập kết quả đánh giá QR và năng suất nếu có.
+3. Nhập kết quả đánh giá QR và năng suất.
 4. Kiểm tra lại số liệu và tệp nguồn.
-5. Xuất bảng tổng hợp và báo cáo HTML.
+5. Tổng hợp với baseline khi đủ điều kiện.
+6. Xuất bảng tổng hợp và báo cáo HTML.
 
 Phân biệt rõ:
 
 - Báo cáo xem thử: cho phép bộ chưa hoàn chỉnh và hiện mục chưa có số liệu.
 - Báo cáo đủ bộ: phải đáp ứng điều kiện dữ liệu, phiên, số đo và baseline đã chốt.
 - Có báo cáo đủ bộ không đồng nghĩa đạt toàn bộ đồ án; còn phải xét kiểm thử lỗi và các yêu cầu khác.
+
+Báo cáo xem thử không được dùng thay kết quả đánh giá chính thức.
 
 ## 11. Trình tự hoàn thiện
 
@@ -289,6 +446,9 @@ Phân biệt rõ:
 
 Không tích hợp đồng thời nhiều nhánh chưa kiểm tra.
 Sau mỗi lần tích hợp, chạy lại các kiểm tra có liên quan.
+
+Không chạy lại toàn bộ demo khi không có thay đổi,
+lỗi hoặc điều kiện chưa được kiểm chứng cần giải quyết.
 
 ## 12. Phân công theo vai trò
 
@@ -323,8 +483,10 @@ Không suy ra hoàn thành từ số commit hoặc số PR.
 
 - Mỗi yêu cầu trong Define có module chịu trách nhiệm.
 - Có luồng bình thường và luồng lỗi.
+- Phân biệt lỗi nghiệp vụ với yêu cầu bị API từ chối.
 - Có cách chống trùng và phục hồi khi mất phản hồi.
 - Có thiết kế dữ liệu và giao tiếp giữa các thành phần.
 - Có kịch bản kiểm chứng cho chức năng bắt buộc.
 - Có thứ tự tích hợp và trách nhiệm từng phần.
 - Phần chưa đối chiếu source được đánh dấu, không ghi là đã triển khai.
+- Trạng thái hoàn thành được cập nhật theo minh chứng kiểm tra.
