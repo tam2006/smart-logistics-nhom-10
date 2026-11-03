@@ -73,19 +73,14 @@ class CompletionTests(unittest.TestCase):
 
         self.app = Flask(__name__)
         self.app.config["TESTING"] = True
-
-        self.app.register_blueprint(
-            session_routes.session_api
-        )
+        self.app.register_blueprint(session_routes.session_api)
         self.app.register_blueprint(history_api)
 
         self.client = self.app.test_client()
-
         response = self.client.post(
             "/api/sessions",
             json={"name": "test"},
         )
-
         self.sid = response.get_json()["id"]
 
     def tearDown(self):
@@ -133,25 +128,19 @@ class CompletionTests(unittest.TestCase):
             result.get_json()["result"]["success"]
         )
         self.assertEqual(self.counts(), (0, 0))
+        self.assertEqual(self.prepare(payload).status_code, 200)
 
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            200,
+        close_pending = self.client.post(
+            f"/api/sessions/{self.sid}/close"
         )
+        self.assertEqual(close_pending.status_code, 409)
         self.assertEqual(
-            self.client.post(
-                f"/api/sessions/{self.sid}/close"
-            ).status_code,
-            409,
+            close_pending.get_json()["status"],
+            "session_busy",
         )
-        self.assertEqual(
-            self.finish(payload).status_code,
-            201,
-        )
-        self.assertEqual(
-            self.finish(payload).status_code,
-            200,
-        )
+
+        self.assertEqual(self.finish(payload).status_code, 201)
+        self.assertEqual(self.finish(payload).status_code, 200)
         self.assertEqual(self.counts(), (1, 1))
 
         self.assertEqual(
@@ -164,13 +153,13 @@ class CompletionTests(unittest.TestCase):
             self.prepare(payload).get_json()["phase"],
             "completed",
         )
+        self.assertEqual(self.finish(payload).status_code, 200)
+
+        closed_prepare = self.prepare(self.payload())
+        self.assertEqual(closed_prepare.status_code, 409)
         self.assertEqual(
-            self.finish(payload).status_code,
-            200,
-        )
-        self.assertEqual(
-            self.prepare(self.payload()).status_code,
-            409,
+            closed_prepare.get_json()["status"],
+            "session_closed",
         )
 
     def test_duplicate_does_not_add_success(self):
@@ -180,7 +169,6 @@ class CompletionTests(unittest.TestCase):
 
         payload = self.payload()
         self.prepare(payload)
-
         result = self.finish(payload).get_json()
 
         self.assertEqual(result["status"], "duplicate")
@@ -195,10 +183,7 @@ class CompletionTests(unittest.TestCase):
             f"/api/sessions/{self.sid}/pending"
         ).get_json()
 
-        self.assertEqual(
-            recovered["pending"],
-            payload,
-        )
+        self.assertEqual(recovered["pending"], payload)
         self.assertEqual(
             self.prepare(
                 self.payload("KH002")
@@ -226,13 +211,9 @@ class CompletionTests(unittest.TestCase):
             with self.subTest(code=code):
                 payload = self.payload(code)
                 self.prepare(payload)
-
                 result = self.finish(payload).get_json()
 
-                self.assertEqual(
-                    result["status"],
-                    expected,
-                )
+                self.assertEqual(result["status"], expected)
                 self.assertFalse(result["success"])
                 self.assertIsNone(result["gate"])
 
@@ -258,17 +239,13 @@ class CompletionTests(unittest.TestCase):
 
         with ThreadPoolExecutor(2) as pool:
             self.assertEqual(
-                sorted(
-                    pool.map(prepare_once, range(2))
-                ),
+                sorted(pool.map(prepare_once, range(2))),
                 [200, 201],
             )
 
         with ThreadPoolExecutor(2) as pool:
             self.assertEqual(
-                sorted(
-                    pool.map(finish_once, range(2))
-                ),
+                sorted(pool.map(finish_once, range(2))),
                 [200, 201],
             )
 
@@ -276,12 +253,10 @@ class CompletionTests(unittest.TestCase):
 
     def test_backup_and_repeated_upgrade_keep_history(self):
         payload = self.payload()
-
         self.prepare(payload)
         self.finish(payload)
 
         backup = upgrade(self.db)
-
         self.assertEqual(self.counts(), (1, 1))
 
         with contextlib.closing(
@@ -296,8 +271,8 @@ class CompletionTests(unittest.TestCase):
 
 
 class QRMeasurementTests(unittest.TestCase):
-    # Dùng lại database tạm và ứng dụng thử ở trên.
-    # Không kế thừa lớp cũ để tránh chạy lặp bài thử.
+    # Dùng lại fixture database tạm.
+    # Không kế thừa lớp test cũ để tránh chạy lặp test.
     setUp = CompletionTests.setUp
     tearDown = CompletionTests.tearDown
     payload = CompletionTests.payload
@@ -317,7 +292,6 @@ class QRMeasurementTests(unittest.TestCase):
             "valid": True,
             "invalid_reason": None,
         }
-
         data.update(changes)
         return data
 
@@ -331,13 +305,11 @@ class QRMeasurementTests(unittest.TestCase):
         response = self.client.get(
             f"/api/history/{payload['request_id']}/measurement"
         )
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get_json()["request_id"],
             payload["request_id"],
         )
-
         return response.get_json()["measurement"]
 
     def measurement_count(self):
@@ -355,7 +327,6 @@ class QRMeasurementTests(unittest.TestCase):
         response = self.client.get(
             f"/api/sessions/{self.sid}/pending"
         )
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get_json()["pending"],
@@ -379,21 +350,15 @@ class QRMeasurementTests(unittest.TestCase):
 
     def test_valid_measurement_is_saved_with_history(self):
         payload = self.payload()
-
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            201,
-        )
+        self.assertEqual(self.prepare(payload).status_code, 201)
 
         measurement = self.measurement(
             image_sha256="AB" * 32,
             image_name="  KH001.png  ",
         )
-
         response = self.complete(payload, measurement)
 
         self.assertEqual(response.status_code, 201)
-
         result = response.get_json()
 
         self.assertTrue(result["success"])
@@ -416,10 +381,7 @@ class QRMeasurementTests(unittest.TestCase):
             "pipeline_ms",
             "animation_ms",
         ):
-            self.assertEqual(
-                saved[key],
-                measurement[key],
-            )
+            self.assertEqual(saved[key], measurement[key])
 
         self.assertEqual(
             saved["created_at"],
@@ -428,41 +390,25 @@ class QRMeasurementTests(unittest.TestCase):
 
     def test_invalid_measurements_leave_request_pending(self):
         payload = self.payload()
-
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            201,
-        )
+        self.assertEqual(self.prepare(payload).status_code, 201)
 
         cases = [
             ("null", None),
             ("array", []),
-            (
-                "extra_field",
-                self.measurement(gate=3),
-            ),
+            ("extra_field", self.measurement(gate=3)),
             (
                 "version_bool",
-                self.measurement(
-                    measurement_version=True
-                ),
+                self.measurement(measurement_version=True),
             ),
             (
                 "version_float",
-                self.measurement(
-                    measurement_version=1.0
-                ),
+                self.measurement(measurement_version=1.0),
             ),
             (
                 "version_unsupported",
-                self.measurement(
-                    measurement_version=2
-                ),
+                self.measurement(measurement_version=2),
             ),
-            (
-                "mode",
-                self.measurement(mode="camera"),
-            ),
+            ("mode", self.measurement(mode="camera")),
             (
                 "name_blank",
                 self.measurement(image_name="   "),
@@ -473,29 +419,17 @@ class QRMeasurementTests(unittest.TestCase):
             ),
             (
                 "hash_short",
-                self.measurement(
-                    image_sha256="a" * 63
-                ),
+                self.measurement(image_sha256="a" * 63),
             ),
             (
                 "hash_non_hex",
-                self.measurement(
-                    image_sha256="z" * 64
-                ),
+                self.measurement(image_sha256="z" * 64),
             ),
-            (
-                "valid_integer",
-                self.measurement(valid=1),
-            ),
-            (
-                "valid_string",
-                self.measurement(valid="true"),
-            ),
+            ("valid_integer", self.measurement(valid=1)),
+            ("valid_string", self.measurement(valid="true")),
             (
                 "valid_with_reason",
-                self.measurement(
-                    invalid_reason="pause"
-                ),
+                self.measurement(invalid_reason="pause"),
             ),
             (
                 "invalid_no_reason",
@@ -535,36 +469,23 @@ class QRMeasurementTests(unittest.TestCase):
                 ("nan", float("nan")),
                 ("infinity", float("inf")),
             ):
-                cases.append(
-                    (
-                        f"{key}_{label}",
-                        self.measurement(
-                            **{key: value}
-                        ),
-                    )
-                )
+                cases.append((
+                    f"{key}_{label}",
+                    self.measurement(**{key: value}),
+                ))
 
         for label, measurement in cases:
             with self.subTest(case=label):
-                response = self.complete(
-                    payload,
-                    measurement,
-                )
+                response = self.complete(payload, measurement)
 
-                self.assertEqual(
-                    response.status_code,
-                    400,
-                )
+                self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.get_json()["status"],
                     "invalid_measurement",
                 )
+                self.assert_pending_without_writes(payload)
 
-                self.assert_pending_without_writes(
-                    payload
-                )
-
-        # Sửa số đo rồi gửi lại cùng request_id.
+        # Gửi lại số đo đúng với cùng request_id.
         self.assertEqual(
             self.complete(
                 payload,
@@ -572,7 +493,6 @@ class QRMeasurementTests(unittest.TestCase):
             ).status_code,
             201,
         )
-
         self.assertEqual(self.counts(), (1, 1))
         self.assertEqual(self.measurement_count(), 1)
 
@@ -586,7 +506,6 @@ class QRMeasurementTests(unittest.TestCase):
                     self.prepare(payload).status_code,
                     201,
                 )
-
                 before = self.counts()
 
                 response = self.complete(
@@ -594,22 +513,13 @@ class QRMeasurementTests(unittest.TestCase):
                     self.measurement(),
                 )
 
-                self.assertEqual(
-                    response.status_code,
-                    400,
-                )
+                self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.get_json()["status"],
                     "invalid_input",
                 )
-                self.assertEqual(
-                    self.counts(),
-                    before,
-                )
-                self.assertEqual(
-                    self.measurement_count(),
-                    0,
-                )
+                self.assertEqual(self.counts(), before)
+                self.assertEqual(self.measurement_count(), 0)
                 self.assertEqual(
                     self.client.get(
                         f"/api/sessions/{self.sid}/pending"
@@ -617,55 +527,39 @@ class QRMeasurementTests(unittest.TestCase):
                     payload,
                 )
 
-                # Hoàn tất không kèm số đo để
-                # giải phóng lượt đang chờ.
+                # Hoàn tất không kèm số đo QR.
                 response = self.client.post(
                     f"/api/history/{payload['request_id']}/complete"
                 )
-
-                self.assertEqual(
-                    response.status_code,
-                    201,
-                )
+                self.assertEqual(response.status_code, 201)
                 self.assertIsNone(
                     self.saved_measurement(payload)
                 )
 
     def test_interrupted_measurement_is_saved_as_invalid(self):
         payload = self.payload("")
-
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            201,
-        )
+        self.assertEqual(self.prepare(payload).status_code, 201)
 
         measurement = self.measurement(
             mode="single",
             image_name="no_qr.png",
             image_sha256=None,
             valid=False,
-            invalid_reason=(
-                "  Trang bị ẩn khi đang đo.  "
-            ),
+            invalid_reason="  Trang bị ẩn khi đang đo.  ",
             read_ms=None,
             prepare_ms=None,
             pipeline_ms=None,
             animation_ms=None,
         )
 
-        response = self.complete(
-            payload,
-            measurement,
-        )
+        response = self.complete(payload, measurement)
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(
             response.get_json()["status"],
             "qr_unreadable",
         )
-        self.assertFalse(
-            response.get_json()["success"]
-        )
+        self.assertFalse(response.get_json()["success"])
         self.assertEqual(self.counts(), (1, 0))
 
         saved = self.saved_measurement(payload)
@@ -687,11 +581,7 @@ class QRMeasurementTests(unittest.TestCase):
 
     def test_legacy_complete_without_measurement_still_works(self):
         payload = self.payload()
-
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            201,
-        )
+        self.assertEqual(self.prepare(payload).status_code, 201)
 
         response = self.client.post(
             f"/api/history/{payload['request_id']}/complete"
@@ -700,23 +590,13 @@ class QRMeasurementTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.counts(), (1, 1))
         self.assertEqual(self.measurement_count(), 0)
-        self.assertIsNone(
-            self.saved_measurement(payload)
-        )
+        self.assertIsNone(self.saved_measurement(payload))
 
     def test_retry_after_close_does_not_overwrite_measurement(self):
         payload = self.payload()
+        self.assertEqual(self.prepare(payload).status_code, 201)
 
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            201,
-        )
-
-        first = self.complete(
-            payload,
-            self.measurement(),
-        )
-
+        first = self.complete(payload, self.measurement())
         self.assertEqual(first.status_code, 201)
 
         saved = self.saved_measurement(payload)
@@ -750,11 +630,7 @@ class QRMeasurementTests(unittest.TestCase):
 
     def assert_atomic_retry(self, trigger_sql):
         payload = self.payload()
-
-        self.assertEqual(
-            self.prepare(payload).status_code,
-            201,
-        )
+        self.assertEqual(self.prepare(payload).status_code, 201)
 
         with contextlib.closing(
             sqlite3.connect(self.db)
@@ -762,20 +638,14 @@ class QRMeasurementTests(unittest.TestCase):
             with conn:
                 conn.execute(trigger_sql)
 
-        # TESTING=True làm Flask chuyển lỗi SQLite
-        # ra cho bài thử bắt.
-        # Trigger chỉ tồn tại trong database tạm.
+        # Trigger chỉ tạo lỗi trong database tạm.
         with self.assertRaisesRegex(
             sqlite3.IntegrityError,
             "forced_qr_test_failure",
         ):
-            self.complete(
-                payload,
-                self.measurement(),
-            )
+            self.complete(payload, self.measurement())
 
-        # Lịch sử, số đo và trạng thái hoàn tất
-        # phải cùng hoàn tác.
+        # Toàn bộ giao dịch phải được hoàn tác.
         self.assert_pending_without_writes(payload)
 
         with contextlib.closing(
@@ -786,11 +656,7 @@ class QRMeasurementTests(unittest.TestCase):
                     "DROP TRIGGER force_qr_test_failure"
                 )
 
-        # Bỏ lỗi giả lập rồi gửi lại cùng request_id.
-        response = self.complete(
-            payload,
-            self.measurement(),
-        )
+        response = self.complete(payload, self.measurement())
 
         self.assertEqual(response.status_code, 201)
         self.assertTrue(response.get_json()["success"])
@@ -803,7 +669,6 @@ class QRMeasurementTests(unittest.TestCase):
         pending = self.client.get(
             f"/api/sessions/{self.sid}/pending"
         )
-
         self.assertEqual(pending.status_code, 200)
         self.assertIsNone(pending.get_json()["pending"])
 
@@ -830,7 +695,7 @@ class QRMeasurementTests(unittest.TestCase):
                     ABORT,
                     'forced_qr_test_failure'
                 );
-
+            END
         """)
 
     def test_completion_update_failure_rolls_back_history_and_measurement(self):
@@ -846,6 +711,96 @@ class QRMeasurementTests(unittest.TestCase):
                 );
             END
         """)
+
+    def test_invalid_complete_body_keeps_pending_and_can_retry(self):
+        payload = self.payload()
+        self.assertEqual(self.prepare(payload).status_code, 201)
+
+        url = (
+            f"/api/history/{payload['request_id']}/complete"
+        )
+        cases = [
+            (
+                "extra_field",
+                '{"unexpected": 1}',
+                "application/json",
+            ),
+            ("array", "[]", "application/json"),
+            ("null", "null", "application/json"),
+            ("broken_json", "{", "application/json"),
+            ("text", "hello", "text/plain"),
+        ]
+
+        for label, body, content_type in cases:
+            with self.subTest(case=label):
+                response = self.client.post(
+                    url,
+                    data=body,
+                    content_type=content_type,
+                )
+
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.get_json()["status"],
+                    "invalid_input",
+                )
+                self.assert_pending_without_writes(payload)
+
+        # Body sai không làm mất lượt; sửa lại vẫn hoàn tất.
+        response = self.complete(
+            payload,
+            self.measurement(),
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(self.counts(), (1, 1))
+        self.assertEqual(self.measurement_count(), 1)
+
+    def test_valid_parcel_can_complete_with_invalid_measurement(self):
+        payload = self.payload()
+        self.assertEqual(self.prepare(payload).status_code, 201)
+
+        measurement = self.measurement(
+            mode="single",
+            valid=False,
+            invalid_reason="page_reloaded",
+            read_ms=None,
+            prepare_ms=None,
+            pipeline_ms=None,
+            animation_ms=None,
+        )
+        response = self.complete(payload, measurement)
+
+        # Số đo gián đoạn không biến kiện hợp lệ thành lỗi.
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(
+            response.get_json()["status"],
+            "success",
+        )
+        self.assertTrue(response.get_json()["success"])
+        self.assertEqual(response.get_json()["gate"], 1)
+        self.assertEqual(self.counts(), (1, 1))
+        self.assertEqual(self.measurement_count(), 1)
+
+        saved = self.saved_measurement(payload)
+        self.assertIs(saved["valid"], False)
+        self.assertEqual(
+            saved["invalid_reason"],
+            "page_reloaded",
+        )
+
+        for key in (
+            "read_ms",
+            "prepare_ms",
+            "pipeline_ms",
+            "animation_ms",
+        ):
+            self.assertIsNone(saved[key])
+
+        self.assertIsNone(
+            self.client.get(
+                f"/api/sessions/{self.sid}/pending"
+            ).get_json()["pending"]
+        )
 
 
 if __name__ == "__main__":
