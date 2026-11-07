@@ -1,248 +1,129 @@
 # Cấu trúc công việc và tiến độ — Smart Logistics nhóm 10
 
-Cập nhật: 02/11/2026.
+Cập nhật: 07/11/2026  
+Mốc đối chiếu source: `d39776e`
 
 ## 1. Mục đích và tài liệu liên quan
 
-Nhóm dùng cấu trúc này để chia việc, triển khai và kiểm tra
-demo mô phỏng một trạm phân loại kiện hàng với ba cửa.
+- [Define](project-description.md): Bài toán, phạm vi, yêu cầu và tiêu chí đánh giá.
+- [Design](system-design.md): Kiến trúc, dữ liệu, API và luồng xử lý.
+- Tài liệu này: Tiến độ, bằng chứng đã có và các bước còn lại.
 
-Ba tài liệu được sử dụng cùng nhau:
-
-- project-description.md: bài toán, phạm vi và yêu cầu.
-- system-design.md: kiến trúc, module, dữ liệu, API và pipeline.
-- implementation-status.md: phần việc, tiến độ và bằng chứng kiểm tra.
-
-Không đánh dấu hoàn thành chỉ vì đã có file hoặc đã push code.
-Một phần được xác nhận đạt khi có kết quả kiểm tra phù hợp.
-
-Các nhánh của thành viên chưa được rà soát không được mặc định
-đã tích hợp vào bản demo chung.
+Mã F01–F11 dùng thống nhất với Define và Design. Mỗi kết quả chỉ xác nhận
+phạm vi đã thử. Code có trên nhánh riêng vẫn cần được kiểm tra trên bản chung.
 
 ## 2. Cấu trúc công việc
 
-| Bước | Phần việc | Đầu ra cần có | Điều kiện hoàn thành |
+| Bước | Việc cần làm | Đầu ra |
+|---|---|---|
+| 1 | Xác định bài toán và yêu cầu | Define và tiêu chí nghiệm thu |
+| 2 | Thiết kế dữ liệu, kiến trúc và luồng xử lý | Design |
+| 3 | Chuẩn bị dữ liệu và triển khai chức năng | Ứng dụng chạy được, hai bộ dữ liệu và đáp án |
+| 4 | Kiểm thử và tích hợp phần thành viên | Kết quả backend, giao diện và các tình huống lỗi |
+| 5 | Chốt bản đánh giá | Kết quả tự động, đối chiếu đáp án và so sánh thủ công |
+| 6 | Hoàn thiện báo cáo và demo | Báo cáo, slide và kịch bản trình bày |
+
+## 3. Theo dõi yêu cầu chức năng
+
+| Mã | Yêu cầu theo Define | Bằng chứng hiện có | Việc còn lại |
 |---|---|---|---|
-| 1 | Xác định bài toán | project-description.md | Thống nhất phạm vi, đầu vào, đầu ra và yêu cầu |
-| 2 | Thiết kế hệ thống | system-design.md | Có kiến trúc, module, cấu trúc thư mục, pipeline và API |
-| 3 | Chuẩn bị dữ liệu | Dữ liệu sạch, bộ demo, bộ final_test, ảnh QR và đáp án | Kiểm tra đủ bộ, không trùng giữa hai tập, đối chiếu được |
-| 4 | Khởi tạo hệ thống | Script khởi tạo và database | Chạy được trên môi trường mới, bảo toàn dữ liệu khi chạy lại |
-| 5 | Xây dựng luồng phân loại | Nhập mã hoặc QR, tra cứu, chọn cửa, mô phỏng, xác nhận | Kết quả đúng theo quy tắc và chỉ ghi lịch sử sau xác nhận |
-| 6 | Quản lý phiên và lịch sử | Phiên, số đếm, lịch sử, phân trang | Hiển thị đúng phiên, không mất hoặc nhân đôi lượt |
-| 7 | Tích hợp phần thành viên | Kiểm tra dữ liệu, khởi tạo, kiểm thử, lọc và CSV | Rà soát nhánh, giải quyết xung đột và thử trên bản chung |
-| 8 | Kiểm tra tình huống lỗi | Kịch bản thử và kết quả thực tế | Đủ các tình huống bắt buộc, xử lý và thông báo đúng |
-| 9 | Đánh giá hệ thống | Số đo QR, định tuyến, thời gian, năng suất và bài thủ công | Đối chiếu được với đáp án và nguồn số liệu |
-| 10 | Hoàn thiện báo cáo và demo | Báo cáo, slide, hướng dẫn chạy, kịch bản trình bày | Nội dung khớp với bản code và kết quả đã kiểm tra |
+| F01 | Một trạm, một băng chuyền và ba cửa | Giao diện mô phỏng đã hiển thị ba cửa và điểm đến tương ứng. | Đưa vào kịch bản demo. |
+| F02 | Đọc QR từ ảnh | Đã chạy luồng đọc ảnh trong phiên demo. | Đo riêng độ chính xác trên bộ `final_test`; thử ảnh không đọc được trên giao diện. |
+| F03 | Nhập mã bằng tay | KH001 và KH005 đã hoàn tất và có nguồn “Nhập tay” trong lịch sử. | Lưu bằng chứng cùng kịch bản demo. |
+| F04 | Tra cứu và xác định cửa | Phiên demo ghi nhận 30 lượt thành công; backend có kiểm thử lỗi điểm đến và quy tắc cửa. | Đối chiếu cửa của từng kiện `final_test` với đáp án độc lập. |
+| F05 | Mô phỏng tuần tự | Đã chạy lô demo; backend kiểm tra lịch sử chỉ ghi sau bước hoàn tất. | Lưu bằng chứng chạy lô theo thứ tự và kết quả gắn đúng từng lượt. |
+| F06 | Quản lý phiên | Đã thử chọn phiên đóng và khôi phục lượt đang chờ. Có kiểm thử quy tắc đóng phiên. | Ghi kết quả chuyển phiên trong bài thử tích hợp bộ lọc. |
+| F07 | Chống phân loại trùng | Backend xác nhận quét lại trong cùng phiên không tăng số thành công. | Lưu kết quả trước và sau khi quét lại trên giao diện. |
+| F08 | Xử lý lỗi | Backend đã thử các lỗi nghiệp vụ T02–T07. | Đối chiếu thông báo trên giao diện; thử riêng T08 khi backend không phản hồi. |
+| F09 | Lưu lịch sử | Đã xem đủ 30 dòng qua phân trang. Backend kiểm tra gửi lại, xử lý đồng thời và hoàn tác khi ghi lỗi. | Kiểm tra phân trang và phạm vi phiên sau khi tích hợp bộ lọc. |
+| F10 | Thống kê | Phiên demo có 30 thành công, 0 lỗi và 10 kiện mỗi cửa. | Kiểm tra tổng phiên khi có cả lượt thành công và lỗi, kể cả khi đang lọc lịch sử. |
+| F11 | Đánh giá | Công cụ tổng hợp đã tạo được báo cáo xem thử. | Xác minh báo cáo đã lưu; hoàn tất các phép đo còn thiếu và so sánh với baseline thủ công. |
 
-Thứ tự thực hiện:
+## 4. Bằng chứng đã kiểm tra
 
-1. Thống nhất yêu cầu và thiết kế.
-2. Triển khai theo từng phần việc.
-3. Kiểm tra từng phần và tích hợp.
-4. Chốt phiên bản để đánh giá.
-5. Hoàn thiện báo cáo và trình bày demo.
+### Dữ liệu và khởi tạo
 
-Khi phát hiện thiết kế cần thay đổi, cập nhật system-design.md
-và ghi lại ảnh hưởng tới các phần việc liên quan.
+- `demo`: KH001–KH030. `final_test`: KH031–KH060. Mỗi bộ có 30 kiện,
+  30 ảnh và 10 đáp án cho mỗi cửa. Hai bộ không trùng mã kiện hoặc mã đơn.
+- `python kiem_tra_du_lieu.py` đã trả mã thoát 0 trên máy nhóm.
+  Bước này kiểm tra quy tắc, tên và số lượng ảnh; chưa đo khả năng giải mã QR.
+- Trên máy nhóm, `python app.py` chạy với database có sẵn;
+  `/api/health` trả `status: ok`, 60 kiện và 3 quy tắc cửa.
+  Khởi tạo SQLite mới và chạy lại cũng đã được thử trên bản sao kiểm tra.
 
-## 3. Quy ước trạng thái
+### Phiên demo và phục hồi
 
-- Chưa bắt đầu: chưa có triển khai hoặc chưa có thông tin.
-- Đang làm: đã triển khai một phần, còn việc phải hoàn thiện.
-- Chờ kiểm tra: đã có code hoặc kết quả bàn giao, chưa xác nhận đạt.
-- Cần sửa: đã phát hiện vấn đề cần xử lý.
-- Đã kiểm chứng một phần: đạt trong phạm vi được ghi rõ.
-- Hoàn thành: đủ điều kiện kiểm tra của phần việc.
+- Phiên `Kiem tra demo 30 - 01` (`de8a2511`) đã đóng: 30 lượt thành công,
+  0 lượt lỗi, 10 kiện mỗi cửa. Lịch sử tải 10 dòng đầu và có thể xem đủ 30 dòng.
+- Phiên `Thu khoi phuc 01` (`ba58c13d`): KH001 hoàn tất ở cửa 1.
+  Sau khi tải lại trang trong lúc KH005 còn chờ, nhóm bấm gửi lại và thấy
+  KH005 hoàn tất ở cửa 2. Lịch sử hiển thị hai dòng, mỗi kiện một dòng.
 
-Trạng thái của một bài kiểm thử không đại diện cho toàn bộ hệ thống.
+### Kiểm thử backend
 
-## 4. Theo dõi triển khai chức năng
-
-Các mã F dùng để đối chiếu với tài liệu yêu cầu và thiết kế.
-Nếu hai tài liệu thay đổi, cần cập nhật bảng này cho thống nhất.
-
-| Mã | Phần việc | File hoặc khu vực liên quan | Trạng thái | Việc cần kiểm tra tiếp |
-|---|---|---|---|---|
-| F01 | Chuẩn bị và kiểm tra dữ liệu | chuan_bi_du_lieu_ung_dung.py, lam_sach_du_lieu.py, kiem_tra_du_lieu.py, data/ | Chờ kiểm tra | Rà soát dữ liệu và phần bàn giao của thành viên |
-| F02 | Khởi tạo database và dữ liệu ứng dụng | init_db.py, init_tracking.py, nang_cap_xu_ly.py | Đã kiểm chứng một phần | Kiểm tra toàn bộ quy trình khởi tạo trên môi trường mới; bộ thử hiện có đã kiểm tra một số trường hợp nâng cấp và sao lưu |
-| F03 | Tạo, chọn và đóng phiên | session_routes.py, static/app.js | Đã kiểm chứng một phần | Tiếp tục kiểm tra giao diện và các tình huống phục hồi; một số quy tắc đóng phiên và gửi lại đã có bài thử đạt |
-| F04 | Nhập mã kiện bằng tay | templates/index.html, static/app.js, history_routes.py | Chờ kiểm tra | Thử luồng giao diện từ nhập mã tới xác nhận hoàn tất |
-| F05 | Đọc ảnh QR | static/qr_decoder.js, static/app.js, static/qr_evaluation.html | Đang làm | Hoàn thiện bằng chứng đánh giá trên toàn bộ ảnh đầu vào |
-| F06 | Tra cứu và quyết định cửa | history_routes.py, dữ liệu kiện và quy tắc | Đã kiểm chứng một phần | Đối chiếu đủ bộ đáp án và các trường hợp nghiệp vụ |
-| F07 | Mô phỏng và xác nhận hoàn tất | static/app.js, history_routes.py | Đã kiểm chứng một phần | Kiểm tra hành vi trình duyệt khi mất mạng, tải lại trang và khôi phục lượt đang chờ |
-| F08 | Xử lý lỗi, trùng và yêu cầu đồng thời | history_routes.py, các file test_*.py | Đã kiểm chứng một phần | Bổ sung kiểm tra số đo, hoàn tác giao dịch và đủ kịch bản lỗi giao diện |
-| F09 | Chạy lô ảnh và lưu số đo | static/app.js, history_routes.py, nhap_so_do.py | Đã kiểm chứng một phần | Kiểm tra đầy đủ điều kiện đo chính thức, gián đoạn và đối chiếu số liệu |
-| F10 | Lịch sử, số đếm, lọc và xuất CSV | history_routes.py, static/app.js, static/gate_stats.js, phần lọc và CSV của thành viên | Đã kiểm chứng một phần | Phân trang và số đếm đã được thử trên một phiên 30 lượt; lọc và CSV vẫn chờ rà soát tích hợp |
-| F11 | Tổng hợp và đánh giá | xuat_va_doi_chieu.py, tong_hop_danh_gia.py, do_phan_loai_thu_cong.py, nhap_so_do.py | Đang làm | Bản xem thử đã chạy; còn đánh giá chính thức và bài thủ công để so sánh |
-
-## 5. Bằng chứng đã kiểm tra
-
-### 5.1. Báo cáo tổng hợp ở chế độ xem thử
-
-Lệnh chạy:
-
-```powershell
-python tong_hop_danh_gia.py --preview --subset demo
-```
-
-Lần thử được chọn có:
-
-- Bộ demo: 30 kiện.
-- Đã thử: 3 kiện.
-- Đúng lần đầu: 3 kiện.
-- Đúng trên số đã thử: 100%.
-- Đúng trên toàn bộ 30 kiện: 10%.
-- Số mẫu thời gian: 3.
-- Trung bình QR tới nhận cửa: 54.933 ms.
-- Trung vị: 59.9 ms.
-- P95: 61.4 ms.
-
-Đã mở được báo cáo HTML và kiểm tra các giá trị hiển thị.
-
-Báo cáo có số đo năng suất mô phỏng từ nguồn đã chọn,
-nhưng chưa đủ điều kiện bộ đầy đủ và phiên đóng để sử dụng
-như kết quả đo chính thức.
-
-Báo cáo cũng hiển thị rõ chưa nhập JSON đánh giá QR độc lập.
-
-Kết quả này xác nhận việc tạo và hiển thị báo cáo xem thử.
-Không dùng 3/3 để kết luận độ chính xác trên toàn bộ bộ ảnh,
-và không dùng báo cáo xem thử để nghiệm thu toàn bộ đồ án.
-
-### 5.2. Lịch sử và số đếm của một phiên 30 lượt
-
-Phiên đã kiểm tra:
-
-- Tên: Kiem tra demo 30 - 01.
-- ID ngắn: de8a2511.
-- Trạng thái: đã đóng.
-- Tổng lượt: 30.
-- Thành công: 30.
-- Không thành công: 0.
-- Cửa 1: 10 kiện.
-- Cửa 2: 10 kiện.
-- Cửa 3: 10 kiện.
-
-Đã kiểm tra trên giao diện:
-
-- Lần đầu tải 10 lượt lịch sử.
-- Bấm Xem thêm để tải tiếp.
-- Hiển thị đủ 30 lượt.
-- Nút Xem thêm bị vô hiệu hóa khi đã tải hết.
-- Tổng số lượt và số kiện mỗi cửa khớp với phiên được chọn.
-
-Kết quả này chỉ xác nhận phiên và thao tác đã thử.
-Chưa thay thế kiểm tra lọc, xuất CSV hoặc chuyển phiên
-trong các tình huống bất đồng bộ.
-
-### 5.3. Nhãn trong danh sách chọn phiên
-
-Đã kiểm tra giao diện sau khi cập nhật static/app.js.
-
-Mỗi lựa chọn hiển thị:
-
-- Số lượt.
-- Trạng thái phiên.
-- ID ngắn.
-- Tên phiên.
-
-Khi rê chuột, có thể xem tên và ID đầy đủ.
-
-Mục đích: phân biệt các phiên trùng tên và tránh chọn nhầm
-phiên rỗng với phiên đã có dữ liệu.
-
-Đã xác nhận nhãn mới hiển thị trên trình duyệt.
-Không cần tạo thêm lượt xử lý chỉ để kiểm tra nhãn.
-
-## 6. Kết quả kiểm thử backend ngày 02/11/2026
-
-Lệnh chạy:
+Ngày 03/11/2026, nhóm chạy trên Windows và ghi nhận **21 test đạt**:
 
 ```powershell
 python -m unittest -v test_completion_flow test_concurrent_requests test_destination_errors
 ```
 
-Kết quả: 11 bài kiểm thử đạt, không có lỗi.
+Bộ thử kiểm tra các tình huống về phiên, gửi lại, chống trùng, yêu cầu
+đồng thời, lỗi nghiệp vụ, xác thực số đo QR và hoàn tác giao dịch.
 
-Đã kiểm chứng trong phạm vi bộ thử:
+### Báo cáo xem thử
 
-- Prepare chưa tạo lịch sử hoàn tất.
-- Complete và gửi lại không nhân đôi lịch sử.
-- Quét lại kiện không tăng số thành công.
-- Khôi phục yêu cầu đang chờ.
-- Chặn yêu cầu khác khi phiên đang bận.
-- Từ chối request_id có nội dung xung đột.
-- Chặn đóng phiên khi còn lượt chưa hoàn tất.
-- Cho phép lấy lại kết quả cũ sau khi đóng phiên.
-- Chặn yêu cầu mới trong phiên đã đóng.
-- Xử lý yêu cầu đồng thời theo các kịch bản đã thử.
-- Ghi nhận đúng các lỗi nghiệp vụ đã thử.
-- Nâng cấp lặp lại và bản sao lưu giữ được lịch sử thử nghiệm.
+```powershell
+python tong_hop_danh_gia.py --preview --subset demo
+```
 
-Bộ thử này chưa bao phủ:
+Báo cáo đã tạo và mở được. Lần xem thử có 3 kiện được xử lý đúng lần đầu
+trên 3 kiện đã thử, trong bộ demo 30 kiện. Ba mẫu thời gian từ đọc QR
+đến nhận cửa có trung bình 54,933 ms, chưa gồm hoạt ảnh.
 
-- Xác thực số đo QR.
-- Hoàn tác khi ghi dữ liệu thất bại.
-- Phân trang nhiều trang.
-- Hành vi giao diện trình duyệt.
+Kết quả này xác nhận công cụ tổng hợp hoạt động ở chế độ xem thử.
+Lần xem thử chưa có JSON đánh giá QR độc lập và chưa đủ điều kiện
+dùng làm kết quả chính thức.
 
-Phân trang đã được kiểm tra thủ công riêng trong mục 5.2;
-đó không phải kết quả của bộ unittest này.
+## 5. Phần việc thành viên
 
-Kết quả 11 bài thử không thay thế nghiệm thu toàn bộ F06–F09.
-
-## 7. Theo dõi phần việc thành viên
-
-| Phần | Nội dung bàn giao | Tình trạng hiện biết | Bước tiếp theo |
-|---|---|---|---|
-| 1 | Kiểm tra dữ liệu | Đã nhận liên kết nhánh hoặc PR | Rà soát code, dữ liệu thử và kết quả chạy |
-| 2 | Khởi tạo hệ thống | Chưa có đủ nguồn bàn giao để xác nhận | Nhận nhánh và hướng dẫn chạy |
-| 3 | Bổ sung kiểm thử | Chưa có đủ nguồn bàn giao để xác nhận | Nhận nhánh, rà soát phạm vi bài thử và chạy thử |
-| 4 | Lọc lịch sử | Đã nhận liên kết nhánh | Kiểm tra lọc đúng phiên và trên toàn bộ dữ liệu cần lọc |
-| 5 | Xuất lịch sử CSV | Đã thấy PR xuất CSV | Rà soát code và thử dữ liệu đầy đủ, tiếng Việt, ký tự đặc biệt và lỗi xuất |
-
-Tình trạng trong bảng phản ánh thông tin đã nhận.
-Không suy ra thành viên chưa làm chỉ vì chưa có liên kết bàn giao.
-
-Chỉ ghi đã tích hợp sau khi phần việc có trong bản chung
-và đã kiểm tra hoạt động cùng các chức năng hiện có.
-
-## 8. Các kịch bản cần nghiệm thu
-
-| Mã | Kịch bản | Bằng chứng cần lưu |
+| Phần | Nội dung | Trạng thái trên bản chung |
 |---|---|---|
-| T01 | Kiện hợp lệ được đưa tới đúng cửa | Kết quả, lịch sử và đối chiếu đáp án |
-| T02 | Ảnh không đọc được QR | Thông báo và lịch sử lỗi nghiệp vụ |
-| T03 | Mã sai định dạng | Kết quả từ chối hoặc lỗi nghiệp vụ đúng thiết kế |
-| T04 | Mã không tồn tại | Thông báo và lịch sử tương ứng |
-| T05 | Kiện thiếu điểm đến | Kết quả lỗi đúng lý do |
-| T06 | Điểm đến chưa có quy tắc cửa | Kết quả lỗi đúng lý do |
-| T07 | Xử lý lại kiện đã thành công trong cùng phiên | Không tăng thêm số thành công |
-| T08 | Backend không phản hồi | Thông báo rõ, không tự tạo kết quả hoàn tất |
-| T09 | Gửi lại yêu cầu hoàn tất | Không nhân đôi lịch sử và số đo |
-| T10 | Đóng phiên khi còn lượt đang chờ | Từ chối đóng và cho phép giải quyết lượt đang chờ |
-| T11 | Tạo yêu cầu mới trong phiên đã đóng | Từ chối yêu cầu mới |
+| 1 | Kiểm tra dữ liệu | Đã tích hợp; lệnh kiểm tra 60 kiện chạy đạt. |
+| 2 | Khởi tạo hệ thống | Đã tích hợp `khoi_tao_project.py`; đã kiểm tra khởi động ứng dụng. |
+| 3 | Bổ sung kiểm thử | Đã tích hợp; 21 test đạt ở mốc ghi nhận. |
+| 4 | Lọc lịch sử — Phát | Đã có bản bàn giao; chờ tích hợp và kiểm tra trên bản chung. |
+| 5 | Xuất lịch sử CSV trên web | Đã có bản bàn giao; chưa tích hợp. |
 
-Một số kịch bản đã có bằng chứng backend tại mục 6.
-Cần ghi riêng kết quả thử giao diện trước khi đánh dấu
-hoàn thành toàn bộ kịch bản từ đầu tới cuối.
+Lọc và xuất CSV trên web là phần mở rộng. Phân trang, lưu lịch sử,
+thống kê theo phiên và các công cụ đánh giá vẫn được theo dõi theo F01–F11.
 
-## 9. Việc làm tiếp theo
+## 6. Kịch bản nghiệm thu
 
-- [ ] Rà soát sự thống nhất giữa Define, Design và bảng tiến độ.
-- [ ] Nhận đủ phần bàn giao của thành viên.
-- [ ] Rà soát và tích hợp từng phần vào bản chung.
-- [ ] Kiểm tra khởi tạo trên môi trường mới.
-- [ ] Bổ sung kiểm tra xác thực số đo và hoàn tác giao dịch.
-- [ ] Kiểm tra các tình huống mất mạng, tải lại và khôi phục.
-- [ ] Kiểm tra lọc và xuất CSV trên toàn bộ dữ liệu của phiên.
-- [ ] Hoàn thiện bằng chứng cho các kịch bản T01–T11.
-- [ ] Chốt phiên bản trước lần đánh giá chính thức.
-- [ ] Thực hiện đánh giá QR và định tuyến trên bộ final_test.
-- [ ] Đo thời gian và năng suất theo điều kiện đã thống nhất.
-- [ ] Thực hiện bài phân loại thủ công để so sánh.
-- [ ] Lưu điều kiện thử, thứ tự hoặc seed và các lần lặp.
-- [ ] Hoàn thiện báo cáo, slide và hướng dẫn demo.
+| Mã | Tình huống | Bằng chứng hoặc việc còn lại |
+|---|---|---|
+| T01 | QR hợp lệ | Đã chạy demo; cần lưu kết quả đối chiếu từng kiện với đáp án. |
+| T02 | Ảnh không đọc được QR | Backend đã thử trạng thái lỗi; cần thử bằng ảnh trên giao diện. |
+| T03 | Mã sai định dạng | Backend đã thử; cần lưu thông báo hiển thị. |
+| T04 | Mã không tồn tại | Backend đã thử; cần lưu thông báo hiển thị. |
+| T05 | Kiện thiếu điểm đến | Backend đã thử bằng dữ liệu kiểm thử. |
+| T06 | Chưa có quy tắc cửa cho điểm đến | Backend đã thử bằng dữ liệu kiểm thử. |
+| T07 | Quét lại kiện đã thành công | Backend đã thử; cần đối chiếu số thành công trên giao diện. |
+| T08 | Backend không phản hồi | Cần thử riêng; giao diện báo lỗi kết nối và không báo kiện đã hoàn tất. |
+| T09 | Gửi lại yêu cầu hoàn tất | Backend đã thử trả lại kết quả cũ, không nhân đôi lịch sử; giao diện đã thử phục hồi lượt chờ sau khi tải lại trang. |
+| T10 | Đóng phiên còn lượt đang chờ | Backend đã thử từ chối đóng phiên. |
+| T11 | Xử lý vào phiên đã đóng | Backend đã thử từ chối yêu cầu mới. |
 
-Chưa kết luận hoàn thành toàn bộ đồ án hoặc đưa ra phần trăm
-hoàn thành khi chưa đối chiếu đủ yêu cầu và bằng chứng.
+## 7. Việc tiếp theo
+
+- [ ] Tích hợp bộ lọc lịch sử: tìm theo mã, kết quả và nguồn nhập.
+  Thử với một lượt nằm ngoài 10 dòng đầu; kiểm tra đổi phiên, xóa lọc
+  và tổng thống kê vẫn tính trên cả phiên.
+- [ ] Kiểm tra T08 và bổ sung bằng chứng giao diện còn thiếu.
+- [ ] Rà xuất CSV trên web: đủ lịch sử của phiên, đúng tiếng Việt,
+  xử lý dấu phẩy, dấu ngoặc kép, xuống dòng và lỗi tải.
+- [ ] Kiểm tra các báo cáo đã lưu trước khi đo lại. Chốt bản code dùng
+  để đánh giá và bổ sung số đo QR, độ đúng cửa, thời gian và năng suất.
+- [ ] So sánh với bài phân loại thủ công trên cùng bộ `final_test`.
+  Lưu thứ tự kiện, điều kiện chạy và kết quả từng lần thử.
+- [ ] Đồng bộ README và cây thư mục trong Design với cách chạy thực tế.
+- [ ] Hoàn thiện báo cáo, slide và kịch bản demo.
