@@ -806,6 +806,37 @@ td.reason {
   margin: 6px 0 0;
 }
 
+.history-filters {
+  margin-bottom: 16px;
+}
+
+.history-filters fieldset {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #ccd8e4;
+  border-radius: 10px;
+}
+
+.history-filters legend {
+  padding: 0 5px;
+  font-weight: 600;
+}
+
+.history-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 0 12px;
+}
+
+.history-filters .button {
+  width: auto;
+  flex: 0 1 auto;
+}
+
+.history-filters p {
+  margin: 10px 0 0;
+}
+
 .history-footer {
   align-items: flex-start;
   flex-wrap: wrap;

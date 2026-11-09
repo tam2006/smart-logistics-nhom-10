@@ -19,6 +19,8 @@ const statusNames = {
 let sessions = [];
 let busy = false;
 let historyRows = [];
+let historySessionId = "";
+let historyFilters = {};
 let hasMore = false;
 let nextBeforeId = null;
 let pendingRequest = null;
@@ -168,6 +170,7 @@ function updateControls() {
   $("retryButton").hidden = !pending;
   $("retryButton").disabled = busy || !pending;
   $("moreButton").disabled = busy || !selected || !hasMore;
+  $("historyFilterFields").disabled = busy || !selected;
 
   $("total").textContent =
     session?.total ?? (selected ? "—" : 0);
@@ -372,8 +375,10 @@ function renderHistory() {
   const body = $("historyBody");
   body.replaceChildren();
 
-  $("historyCount").textContent =
-    `${historyRows.length} lượt hiển thị`;
+  const filtered = Object.values(historyFilters).some(Boolean);
+  $("historyCount").textContent = filtered
+    ? `${historyRows.length} lượt khớp đã tải`
+    : `${historyRows.length} lượt hiển thị`;
 
   if (!historyRows.length) {
     const row = document.createElement("tr");
@@ -381,9 +386,11 @@ function renderHistory() {
 
     cell.colSpan = 9;
     cell.className = "empty";
-    cell.textContent = $("sessionSelect").value
-      ? "Chưa có lượt được tải."
-      : "Chưa chọn phiên.";
+    cell.textContent = !$("sessionSelect").value
+      ? "Chưa chọn phiên."
+      : filtered
+        ? "Không có lượt nào khớp bộ lọc."
+        : "Chưa có lượt được tải.";
 
     row.append(cell);
     body.append(row);
@@ -431,12 +438,15 @@ function renderHistory() {
 
 function clearHistory() {
   historyRows = [];
+  historySessionId = "";
+  historyFilters = {};
+  $("historyFilterForm").reset();
   hasMore = false;
   nextBeforeId = null;
   renderHistory();
 }
 
-async function loadHistory(append = false) {
+async function loadHistory(append = false, requestedFilters) {
   const sessionId = $("sessionSelect").value;
 
   if (!sessionId) {
@@ -444,10 +454,20 @@ async function loadHistory(append = false) {
     return;
   }
 
+  if (historySessionId !== sessionId) {
+    clearHistory();
+    historySessionId = sessionId;
+    if (append) return;
+  }
+
+  const filters = append ? historyFilters : requestedFilters ?? historyFilters;
   const params = new URLSearchParams({
     session_id: sessionId,
     limit: String(PAGE_SIZE),
   });
+  for (const [key, value] of Object.entries(filters)) {
+    if (value) params.set(key, value);
+  }
 
   if (append) {
     if (!hasMore || nextBeforeId === null) return;
@@ -455,6 +475,8 @@ async function loadHistory(append = false) {
   }
 
   const data = await api(`/api/history?${params}`);
+
+  if (sessionId !== $("sessionSelect").value) return;
 
   if (append) {
     const seen = new Set(historyRows.map((item) => item.id));
@@ -466,6 +488,7 @@ async function loadHistory(append = false) {
     historyRows = data.history;
   }
 
+  historyFilters = filters;
   hasMore = data.has_more;
   nextBeforeId = data.next_before_id;
 
@@ -948,6 +971,24 @@ $("refreshButton").addEventListener("click", () => {
         ? "Đã làm mới. Cần gửi lại lượt chưa xác nhận."
         : "Đã cập nhật dữ liệu."
     );
+  });
+});
+
+$("historyFilterForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  runTask(async () => {
+    await loadHistory(false, {
+      q: $("historyQuery").value.trim(),
+      outcome: $("historyOutcome").value,
+      source: $("historySource").value,
+    });
+  });
+});
+
+$("historyFilterClear").addEventListener("click", () => {
+  runTask(async () => {
+    await loadHistory(false, {});
+    $("historyFilterForm").reset();
   });
 });
 
