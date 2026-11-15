@@ -1,4 +1,4 @@
-// === HỆ THỐNG LỊCH SỬ QUÉT SMART AI ASSISTANT EDITION ===
+// === HỆ THỐNG LỊCH SỬ QUÉT NEXT-GEN INTELLIGENCE EDITION ===
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-parcel');     
     const statusSelect = document.getElementById('filter-status');    
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentPage = 1;
     const rowsPerPage = 15; 
 
-    const STORAGE_PREFIX = 'smart_logistics_ai_assistant_';
+    const STORAGE_PREFIX = 'smart_logistics_nextgen_';
 
     // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 3. Phân tích ngôn ngữ tự nhiên (Natural Language Parsing cho ô tìm kiếm)
+    // 3. Phân tích ngôn ngữ tự nhiên thông minh
     function parseNaturalLanguageQuery(query) {
         let cleanKeyword = query;
         let detectedStatus = '';
@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const lowerQ = query.toLowerCase();
 
-        // Xử lý từ khóa trạng thái tiếng Việt
         if (lowerQ.includes('thành công') || lowerQ.includes('hoàn thành')) {
             detectedStatus = 'thành công';
             cleanKeyword = cleanKeyword.replace(/thành công|hoàn thành/gi, '');
@@ -78,13 +77,11 @@ document.addEventListener('DOMContentLoaded', function () {
             cleanKeyword = cleanKeyword.replace(/đang xử lý|chờ|lỗi/gi, '');
         }
 
-        // Xử lý nguồn nhập nhanh
         if (lowerQ.includes('nguồn qr') || lowerQ.includes('qr')) {
             detectedSource = 'qr';
             cleanKeyword = cleanKeyword.replace(/nguồn qr|qr/gi, '');
         }
 
-        // Xử lý thời gian nhanh: "hôm nay"
         if (lowerQ.includes('hôm nay')) {
             targetDate = new Date();
             cleanKeyword = cleanKeyword.replace(/hôm nay/gi, '');
@@ -98,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // 4. Hàm lọc chính tích hợp AI Natural Language & Phân trang
+    // 4. Hàm lọc chính với kiểm tra bất thường & hiệu ứng chuyển động
     function applyFilters() {
         const rawQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const aiParsed = parseNaturalLanguageQuery(rawQuery);
@@ -140,8 +137,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 filteredRows.push(row);
                 if (status.includes('thành công') || status.includes('success') || status.includes('hoàn thành')) {
                     successCount++;
+                    row.classList.remove('table-danger');
                 } else {
                     pendingCount++;
+                    // Phát hiện đơn hàng lỗi hoặc chờ lâu -> Đánh dấu cảnh báo nhẹ
+                    if (status.includes('lỗi') || status.includes('error')) {
+                        row.classList.add('table-danger');
+                    }
                 }
 
                 if (codeCell && aiParsed.keyword) {
@@ -189,13 +191,19 @@ document.addEventListener('DOMContentLoaded', function () {
         saveFilterState();
     }
 
-    // 5. Phím tắt thông minh (Ctrl+K để tìm kiếm, Esc để reset)
+    // 5. Phím tắt toàn diện (Ctrl+K tìm kiếm, Esc xóa bộ lọc, Ctrl+← / Ctrl+→ chuyển trang)
     document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
             if (searchInput) { searchInput.focus(); searchInput.select(); }
         } else if (e.key === 'Escape') {
             if (clearBtn) clearBtn.click();
+        } else if (e.ctrlKey && e.key === 'ArrowLeft') {
+            // Chuyển về trang trước
+            if (currentPage > 1) { currentPage--; applyFilters(); }
+        } else if (e.ctrlKey && e.key === 'ArrowRight') {
+            // Chuyển sang trang tiếp theo
+            currentPage++; applyFilters();
         }
     });
 
@@ -276,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "smart_logistics_ai_assistant_history.csv");
+            link.setAttribute("download", "smart_logistics_nextgen_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
