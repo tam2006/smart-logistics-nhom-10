@@ -1,4 +1,4 @@
-// === HỆ THỐNG LỊCH SỬ QUÉT ENTERPRISE EDITION (PAGINATION, VISUAL PROGRESS BAR & ADVANCED FILTERS) ===
+// === HỆ THỐNG LỊCH SỬ QUÉT AI-POWERED ENTERPRISE EDITION ===
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-parcel');     
     const statusSelect = document.getElementById('filter-status');    
@@ -13,17 +13,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const historyTableRows = historyTableBody ? Array.from(historyTableBody.querySelectorAll('tr')) : []; 
     const resultCountEl = document.getElementById('result-count');      
 
-    // Thống kê nhanh & Thanh tiến độ (Progress Bar)
+    // Thống kê nhanh & Tiến độ
     const statTotalEl = document.getElementById('stat-total');
     const statSuccessEl = document.getElementById('stat-success');
     const statPendingEl = document.getElementById('stat-pending');
-    const progressBarEl = document.getElementById('success-progress-bar'); // Thanh progress bar trực quan (nếu có)
+    const progressBarEl = document.getElementById('success-progress-bar'); 
 
-    // Phân trang (Pagination)
+    // Phân trang
     let currentPage = 1;
-    const rowsPerPage = 15; // Số dòng hiển thị mỗi trang
+    const rowsPerPage = 15; 
 
-    const STORAGE_PREFIX = 'smart_logistics_enterprise_';
+    const STORAGE_PREFIX = 'smart_logistics_ai_enterprise_';
 
     // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem(STORAGE_PREFIX + 'end', endDateInput ? endDateInput.value : '');
     }
 
-    // 2. Highlighting từ khóa
+    // 2. Highlighting từ khóa thông minh
     function highlightText(cell, keyword) {
         if (!cell) return;
         const originalText = cell.textContent;
@@ -54,17 +54,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const regex = new RegExp(`(${keyword})`, 'gi');
         if (regex.test(originalText)) {
-            cell.innerHTML = originalText.replace(regex, '<mark class="bg-warning px-1 rounded">$1</mark>');
+            cell.innerHTML = originalText.replace(regex, '<mark class="bg-warning px-1 rounded shadow-sm">$1</mark>');
         } else {
             cell.innerHTML = originalText;
         }
     }
 
-    // 3. Hàm lọc chính kết hợp Phân trang & Biểu đồ trực quan
+    // 3. Hàm lọc chính với Cú pháp nâng cao & Hiệu ứng mượt mà
     function applyFilters() {
-        const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
-        const selectedStatus = statusSelect ? statusSelect.value.trim().toLowerCase() : '';
-        const selectedSource = sourceSelect ? sourceSelect.value.trim().toLowerCase() : '';
+        const rawQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        let keyword = rawQuery;
+        let queryStatusOverride = '';
+        let querySourceOverride = '';
+
+        // Hỗ trợ cú pháp nâng cao dạng "status:thành công" hoặc "source:qr"
+        if (rawQuery.includes('status:')) {
+            const parts = rawQuery.split('status:');
+            keyword = parts[0].trim();
+            queryStatusOverride = parts[1].split(' ')[0].trim();
+        }
+        if (rawQuery.includes('source:')) {
+            const parts = rawQuery.split('source:');
+            keyword = parts[0].trim();
+            querySourceOverride = parts[1].split(' ')[0].trim();
+        }
+
+        const selectedStatus = queryStatusOverride || (statusSelect ? statusSelect.value.trim().toLowerCase() : '');
+        const selectedSource = querySourceOverride || (sourceSelect ? sourceSelect.value.trim().toLowerCase() : '');
         const startDate = startDateInput && startDateInput.value ? new Date(startDateInput.value) : null;
         const endDate = endDateInput && endDateInput.value ? new Date(endDateInput.value) : null;
         
@@ -83,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const source = (row.getAttribute('data-source') || (row.cells[6] ? row.cells[6].innerText : '')).toLowerCase();
             const rowTimeString = row.getAttribute('data-time') || (timeCell ? timeCell.innerText : '');
 
-            let matchKeyword = parcelCode.includes(keyword);
+            let matchKeyword = !keyword || parcelCode.includes(keyword);
             let matchStatus = !selectedStatus || status.includes(selectedStatus);
             let matchSource = !selectedSource || source.includes(selectedSource);
 
@@ -115,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Xử lý phân trang (Pagination)
+        // Phân trang
         const totalFiltered = filteredRows.length;
         const totalPages = Math.ceil(totalFiltered / rowsPerPage) || 1;
         if (currentPage > totalPages) currentPage = totalPages;
@@ -123,21 +139,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const startIndex = (currentPage - 1) * rowsPerPage;
         const endIndex = startIndex + rowsPerPage;
 
-        historyTableRows.forEach(row => { row.style.display = 'none'; }); // Ẩn tất cả trước
+        historyTableRows.forEach(row => { row.style.display = 'none'; });
 
         for (let i = startIndex; i < endIndex && i < totalFiltered; i++) {
-            filteredRows[i].style.display = ''; // Chỉ hiện thị các dòng thuộc trang hiện tại
+            const row = filteredRows[i];
+            row.style.display = '';
+            // Hiệu ứng Fade-in mượt mà khi hiển thị
+            row.style.opacity = '0';
+            setTimeout(() => { row.style.opacity = '1'; row.style.transition = 'opacity 0.3s ease-in-out'; }, 50);
         }
 
-        // Cập nhật giao diện thống kê & tiến độ
+        // Cập nhật giao diện thống kê
         if (resultCountEl) {
-            resultCountEl.innerText = `Hiển thị ${totalFiltered} / ${historyTableRows.length} kết quả (Trang ${currentPage}/${totalPages})`;
+            resultCountEl.innerText = `Hiển thị ${totalFiltered} / ${historyTableRows.length} kết quả phù hợp (Trang ${currentPage}/${totalPages})`;
         }
         if (statTotalEl) statTotalEl.innerText = totalFiltered;
         if (statSuccessEl) statSuccessEl.innerText = successCount;
         if (statPendingEl) statPendingEl.innerText = pendingCount;
 
-        // Cập nhật thanh Progress Bar nếu có trên giao diện
         if (progressBarEl && totalFiltered > 0) {
             const successPercent = (successCount / totalFiltered) * 100;
             progressBarEl.style.width = successPercent + '%';
@@ -147,11 +166,24 @@ document.addEventListener('DOMContentLoaded', function () {
         saveFilterState();
     }
 
-    // 4. Sắp xếp cột bảng (Sorting)
+    // 4. Phím tắt thông minh (Keyboard Shortcuts: Ctrl+K để tìm kiếm, Esc để reset)
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        } else if (e.key === 'Escape') {
+            if (clearBtn) clearBtn.click();
+        }
+    });
+
+    // 5. Sắp xếp cột bảng (Sorting)
     const tableHeaders = document.querySelectorAll('#history-table th');
     tableHeaders.forEach((th, index) => {
         th.style.cursor = 'pointer';
-        th.title = 'Bấm để sắp xếp tăng/giảm dần';
+        th.title = 'Bấm để sắp xếp';
         let isAsc = true;
         th.addEventListener('click', function () {
             isAsc = !isAsc;
@@ -165,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 5. Sao chép nhanh khi bấm đúp chuột
+    // 6. Sao chép nhanh khi bấm đúp chuột
     if (historyTableBody) {
         historyTableBody.addEventListener('dblclick', function (e) {
             const cell = e.target.closest('td');
@@ -180,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 6. Sự kiện lắng nghe tương tác
+    // 7. Lắng nghe sự kiện
     if (searchInput) searchInput.addEventListener('input', () => { currentPage = 1; applyFilters(); });
     if (statusSelect) statusSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
     if (sourceSelect) sourceSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
@@ -200,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Xuất CSV theo kết quả lọc
+    // 8. Xuất CSV thông minh
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', function () {
             let csvContent = "data:text/csv;charset=utf-8,ThoiGian,MaDonHang,TrangThai,NguonNhap\n";
@@ -224,21 +256,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "smart_logistics_enterprise_history.csv");
+            link.setAttribute("download", "smart_logistics_ai_enterprise_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         });
     }
 
-    // 8. In báo cáo
+    // 9. In báo cáo / Lưu PDF chuyên nghiệp
     if (printReportBtn) {
         printReportBtn.addEventListener('click', function () {
             window.print();
         });
     }
 
-    // Khởi chạy
+    // Khởi chạy hệ thống
     restoreFilterState();
     applyFilters();
 });
