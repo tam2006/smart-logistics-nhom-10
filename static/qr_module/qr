@@ -1,50 +1,110 @@
-<!-- === BẮT ĐẦU PHẦN 2: ĐỌC MỘT ẢNH QR (NÂNG CẤP HOÀN CHỈNH) === -->
+<!-- === BẮT ĐẦU PHẦN 2: ĐỌC MÃ QR (PHIÊN BẢN PRO: ẢNH + WEBCAM + LỊCH SỬ + ÂM THANH) === -->
 <script src="{{ url_for('static', filename='vendor/jsQR.js') }}"></script>
 
 <div class="card shadow-sm mb-4" id="single-qr-section">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">📦 Đọc Một Ảnh QR</h5>
-        <span class="badge bg-light text-primary" id="qrFileStatus">Chưa chọn tệp</span>
-    </div>
-    <div class="card-body">
-        <!-- Vùng chọn / kéo thả ảnh QR -->
-        <div id="dropZone" class="border border-2 border-dashed rounded p-3 text-center mb-3 bg-light" style="cursor: pointer; transition: 0.2s;">
-            <label for="qrImageInput" class="form-label fw-bold mb-1" style="cursor: pointer;">
-                Chọn hoặc kéo thả ảnh chứa mã QR vào đây
-            </label>
-            <p class="text-muted small mb-2">Hỗ trợ định dạng: PNG, JPG, JPEG, WEBP</p>
-            <input class="form-control form-control-sm" type="file" id="qrImageInput" accept="image/png, image/jpeg, image/jpg, image/webp">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0">📦 Trạm Đọc Mã QR Đơn Hàng</h5>
+        <div class="d-flex align-items-center gap-2">
+            <div class="form-check form-switch mb-0 text-white" title="Bật/tắt âm thanh khi quét thành công">
+                <input class="form-check-input" type="checkbox" id="soundToggle" checked>
+                <label class="form-check-label small" for="soundToggle">🔊 Âm báo</label>
+            </div>
+            <span class="badge bg-light text-primary" id="qrFileStatus">Sẵn sàng</span>
         </div>
+    </div>
 
-        <!-- Khu vực hiển thị ảnh xem trước (Preview) -->
-        <div class="mb-3 text-center position-relative">
-            <div class="border p-2 rounded bg-white" style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <img id="qrPreview" src="#" alt="Ảnh xem trước QR" style="max-width: 100%; max-height: 260px; display: none; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
-                <span id="placeholderText" class="text-muted">🖼️ Ảnh xem trước sẽ hiển thị tại đây</span>
-                <small id="fileInfoText" class="text-secondary mt-2 d-none"></small>
+    <div class="card-body">
+        <!-- Thanh chuyển đổi chế độ: Đọc từ Ảnh / Quét qua Camera -->
+        <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded border" id="qrModeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="tab-image-btn" data-bs-toggle="pill" data-bs-target="#pane-image" type="button" role="tab">
+                    🖼️ Tải Ảnh Lên
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="tab-camera-btn" data-bs-toggle="pill" data-bs-target="#pane-camera" type="button" role="tab">
+                    📷 Quét Webcam Trực Tiếp
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="qrModeContent">
+            <!-- TAB 1: ĐỌC TỪ FILE ẢNH -->
+            <div class="tab-pane fade show active" id="pane-image" role="tabpanel">
+                <div id="dropZone" class="border border-2 border-dashed rounded p-3 text-center mb-3 bg-light" style="cursor: pointer; transition: 0.2s;">
+                    <label for="qrImageInput" class="form-label fw-bold mb-1" style="cursor: pointer;">
+                        Chọn hoặc kéo thả ảnh chứa mã QR vào đây
+                    </label>
+                    <p class="text-muted small mb-2">Hỗ trợ định dạng: PNG, JPG, JPEG, WEBP</p>
+                    <input class="form-control form-control-sm" type="file" id="qrImageInput" accept="image/png, image/jpeg, image/jpg, image/webp">
+                </div>
+
+                <!-- Ảnh xem trước -->
+                <div class="mb-3 text-center position-relative">
+                    <div class="border p-2 rounded bg-white" style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <img id="qrPreview" src="#" alt="Ảnh xem trước QR" style="max-width: 100%; max-height: 250px; display: none; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+                        <span id="placeholderText" class="text-muted">🖼️ Ảnh xem trước sẽ hiển thị tại đây</span>
+                        <small id="fileInfoText" class="text-secondary mt-2 d-none"></small>
+                    </div>
+                </div>
+
+                <!-- Nút điều khiển Tab Ảnh -->
+                <div class="d-flex gap-2 mb-3">
+                    <button id="scanBtn" class="btn btn-success flex-grow-1 fw-bold" disabled>
+                        🔍 Quét Mã QR Từ Ảnh
+                    </button>
+                    <button id="clearQrBtn" class="btn btn-outline-secondary" type="button" disabled>
+                        ✖ Xóa
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: QUÉT TRỰC TIẾP QUA CAMERA -->
+            <div class="tab-pane fade" id="pane-camera" role="tabpanel">
+                <div class="text-center mb-3">
+                    <div class="border rounded bg-dark position-relative overflow-hidden mx-auto" style="max-width: 450px; min-height: 240px; display: flex; align-items: center; justify-content: center;">
+                        <video id="qrVideo" class="w-100 d-none" playsinline></video>
+                        <canvas id="qrCameraCanvas" class="d-none"></canvas>
+                        <div id="cameraPlaceholder" class="text-white-50 p-4">
+                            <p class="mb-1 fs-4">📷</p>
+                            <small>Bấm "Bật Camera" và đưa mã QR vào trước ống kính</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-3 justify-content-center">
+                    <button id="startCamBtn" class="btn btn-primary fw-bold">
+                        ▶ Bật Camera
+                    </button>
+                    <button id="stopCamBtn" class="btn btn-danger fw-bold" disabled>
+                        ⏹ Tắt Camera
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Cụm nút điều khiển -->
-        <div class="d-flex gap-2 mb-3">
-            <button id="scanBtn" class="btn btn-success flex-grow-1 fw-bold" disabled>
-                🔍 Quét Mã QR
-            </button>
-            <button id="clearQrBtn" class="btn btn-outline-secondary" type="button" disabled>
-                ✖ Xóa
-            </button>
-        </div>
-
-        <!-- Khu vực hiển thị thông báo kết quả kèm nút Sao chép -->
-        <div id="scanResultAlert" class="alert d-none mb-0 align-items-center justify-content-between flex-wrap gap-2" role="alert">
+        <!-- Khu vực hiển thị thông báo kết quả chung -->
+        <div id="scanResultAlert" class="alert d-none mb-3 align-items-center justify-content-between flex-wrap gap-2" role="alert">
             <div id="alertContentText" class="flex-grow-1"></div>
             <button id="copyResultBtn" class="btn btn-sm btn-outline-dark d-none" type="button">📋 Sao chép</button>
+        </div>
+
+        <!-- LỊCH SỬ QUÉT MÃ QR (LƯU TRÊN TRÌNH DUYỆT) -->
+        <div class="border-top pt-3 mt-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0 fw-bold text-secondary">📜 Lịch sử quét gần đây (<span id="historyCount">0</span>)</h6>
+                <button id="clearHistoryBtn" class="btn btn-link btn-sm text-danger text-decoration-none p-0 d-none">Xóa lịch sử</button>
+            </div>
+            <ul id="scanHistoryList" class="list-group list-group-flush small border rounded" style="max-height: 160px; overflow-y: auto;">
+                <li class="list-group-item text-muted text-center py-2">Chưa có mã nào được quét</li>
+            </ul>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Khai báo các phần tử DOM
     const qrImageInput = document.getElementById('qrImageInput');
     const dropZone = document.getElementById('dropZone');
     const qrPreview = document.getElementById('qrPreview');
@@ -56,11 +116,87 @@ document.addEventListener('DOMContentLoaded', function () {
     const scanResultAlert = document.getElementById('scanResultAlert');
     const alertContentText = document.getElementById('alertContentText');
     const copyResultBtn = document.getElementById('copyResultBtn');
+    const soundToggle = document.getElementById('soundToggle');
 
-    let lastDecodedText = ''; // Lưu lại mã QR vừa đọc được để phục vụ tính năng sao chép
+    // Phần tử DOM cho Camera & Lịch sử
+    const startCamBtn = document.getElementById('startCamBtn');
+    const stopCamBtn = document.getElementById('stopCamBtn');
+    const qrVideo = document.getElementById('qrVideo');
+    const qrCameraCanvas = document.getElementById('qrCameraCanvas');
+    const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+    const scanHistoryList = document.getElementById('scanHistoryList');
+    const historyCount = document.getElementById('historyCount');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
+    let lastDecodedText = '';
+    let videoStream = null;
+    let cameraScanInterval = null;
+    const STORAGE_KEY = 'smart_logistics_qr_history_v1';
+
+    // 1. TÍNH NĂNG ÂM THANH PHẢN HỒI (Web Audio API - Không cần file mp3 bên ngoài)
+    function playBeepSound() {
+        if (!soundToggle.checked) return;
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nốt La cao (tiếng bíp chuẩn máy quét)
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.12);
+        } catch (e) {
+            console.log('Trình duyệt chặn tự động phát âm thanh:', e);
+        }
+    }
+
+    // 2. TÍNH NĂNG LỊCH SỬ QUÉT (LocalStorage)
+    function loadHistory() {
+        const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        historyCount.textContent = history.length;
+
+        if (history.length === 0) {
+            scanHistoryList.innerHTML = '<li class="list-group-item text-muted text-center py-2">Chưa có mã nào được quét</li>';
+            clearHistoryBtn.classList.add('d-none');
+            return;
+        }
+
+        clearHistoryBtn.classList.remove('d-none');
+        scanHistoryList.innerHTML = history.map(item => `
+            <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
+                <div class="text-truncate me-2">
+                    <span class="badge bg-secondary me-1">${item.source}</span>
+                    <strong class="text-dark">${item.code}</strong>
+                </div>
+                <small class="text-muted text-nowrap">${item.time}</small>
+            </li>
+        `).join('');
+    }
+
+    function saveToHistory(codeText, sourceLabel) {
+        const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // Tránh lưu trùng lặp liên tiếp cùng 1 mã trong vài giây
+        if (history.length > 0 && history[0].code === codeText) return;
+
+        history.unshift({ code: codeText, source: sourceLabel, time: timeStr });
+        if (history.length > 10) history.pop(); // Giữ tối đa 10 mã gần nhất
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        loadHistory();
+    }
+
+    clearHistoryBtn.addEventListener('click', function () {
+        localStorage.removeItem(STORAGE_KEY);
+        loadHistory();
+    });
+
+    // Hiển thị thông báo kết quả
     function showAlert(title, message, type, showCopy = false, rawText = '') {
-        scanResultAlert.className = `alert alert-${type} mb-0 d-flex align-items-center justify-content-between flex-wrap gap-2`;
+        scanResultAlert.className = `alert alert-${type} mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2`;
         alertContentText.innerHTML = `<strong>${title}</strong><br>${message}`;
         
         if (showCopy && rawText) {
@@ -69,13 +205,12 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             copyResultBtn.classList.add('d-none');
         }
-        
         scanResultAlert.classList.remove('d-none');
     }
 
+    // Xử lý chọn / kéo thả ảnh
     function handleImageFile(file) {
         if (!file) return;
-
         if (!file.type.startsWith('image/')) {
             showAlert('⚠️ Lỗi định dạng tệp:', 'Vui lòng chỉ chọn tệp hình ảnh (PNG, JPG, WEBP).', 'danger');
             resetUI();
@@ -109,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
         qrPreview.style.display = 'none';
         placeholderText.style.display = 'block';
         fileInfoText.classList.add('d-none');
-        qrFileStatus.textContent = 'Chưa chọn tệp';
+        qrFileStatus.textContent = 'Sẵn sàng';
         qrFileStatus.className = 'badge bg-light text-primary';
         scanBtn.disabled = true;
         clearQrBtn.disabled = true;
@@ -118,18 +253,10 @@ document.addEventListener('DOMContentLoaded', function () {
         lastDecodedText = '';
     }
 
-    qrImageInput.addEventListener('change', function (event) {
-        handleImageFile(event.target.files[0]);
-    });
-
-    dropZone.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        dropZone.classList.replace('bg-light', 'bg-info-subtle');
-    });
-    dropZone.addEventListener('dragleave', function () {
-        dropZone.classList.replace('bg-info-subtle', 'bg-light');
-    });
-    dropZone.addEventListener('drop', function (e) {
+    qrImageInput.addEventListener('change', (e) => handleImageFile(e.target.files[0]));
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.replace('bg-light', 'bg-info-subtle'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.replace('bg-info-subtle', 'bg-light'));
+    dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.replace('bg-info-subtle', 'bg-light');
         if (e.dataTransfer.files.length > 0) {
@@ -137,22 +264,20 @@ document.addEventListener('DOMContentLoaded', function () {
             handleImageFile(e.dataTransfer.files[0]);
         }
     });
-
     clearQrBtn.addEventListener('click', resetUI);
 
-    // Tính năng sao chép kết quả vào bộ nhớ tạm
-    copyResultBtn.addEventListener('click', function() {
+    // Sao chép kết quả
+    copyResultBtn.addEventListener('click', function () {
         if (lastDecodedText) {
             navigator.clipboard.writeText(lastDecodedText).then(() => {
                 const originalText = copyResultBtn.innerHTML;
                 copyResultBtn.innerHTML = '✅ Đã chép!';
-                setTimeout(() => {
-                    copyResultBtn.innerHTML = originalText;
-                }, 2000);
+                setTimeout(() => { copyResultBtn.innerHTML = originalText; }, 2000);
             });
         }
     });
 
+    // Giải mã từ file ảnh
     scanBtn.addEventListener('click', function () {
         if (!qrPreview.src || qrPreview.style.display === 'none') {
             showAlert('⚠️ Thiếu ảnh:', 'Vui lòng chọn một ảnh trước khi bấm quét!', 'warning');
@@ -160,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         scanBtn.disabled = true;
-        scanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang giải mã...';
+        scanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang giải mã...';
 
         const img = new Image();
         img.onload = function () {
@@ -173,39 +298,98 @@ document.addEventListener('DOMContentLoaded', function () {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
             if (typeof jsQR === 'function') {
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: 'dontInvert',
-                });
+                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
 
                 if (code && code.data) {
+                    playBeepSound();
+                    saveToHistory(code.data, 'Ảnh');
                     qrFileStatus.textContent = 'Đọc thành công';
                     qrFileStatus.className = 'badge bg-success';
-                    showAlert(
-                        '✅ Đọc mã QR thành công!',
-                        `Nội dung: <span class="badge bg-dark fs-6">${code.data}</span>`,
-                        'success',
-                        true,
-                        code.data
-                    );
+                    showAlert('✅ Đọc mã QR thành công!', `Nội dung: <span class="badge bg-dark fs-6">${code.data}</span>`, 'success', true, code.data);
                 } else {
                     qrFileStatus.textContent = 'Không thấy mã';
                     qrFileStatus.className = 'badge bg-danger';
-                    showAlert(
-                        '❌ Không tìm thấy mã QR:',
-                        'Ảnh này không chứa mã QR hoặc mã quá mờ. Vui lòng thử ảnh khác.',
-                        'danger',
-                        false
-                    );
+                    showAlert('❌ Không tìm thấy mã QR:', 'Ảnh này không chứa mã QR hoặc mã quá mờ. Vui lòng thử ảnh khác.', 'danger', false);
                 }
             } else {
                 showAlert('⚠️ Lỗi hệ thống:', 'Không tải được thư viện giải mã jsQR.', 'danger', false);
             }
 
             scanBtn.disabled = false;
-            scanBtn.innerHTML = '🔍 Quét Mã QR';
+            scanBtn.innerHTML = '🔍 Quét Mã QR Từ Ảnh';
         };
         img.src = qrPreview.src;
     });
+
+    // 3. TÍNH NĂNG QUÉT WEBCAM TRỰC TIẾP
+    function stopCamera() {
+        if (cameraScanInterval) {
+            clearInterval(cameraScanInterval);
+            cameraScanInterval = null;
+        }
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+        qrVideo.classList.add('d-none');
+        cameraPlaceholder.classList.remove('d-none');
+        startCamBtn.disabled = false;
+        stopCamBtn.disabled = true;
+        qrFileStatus.textContent = 'Đã tắt Cam';
+        qrFileStatus.className = 'badge bg-light text-primary';
+    }
+
+    startCamBtn.addEventListener('click', async function () {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showAlert('⚠️ Không hỗ trợ Camera:', 'Trình duyệt của bạn không hỗ trợ hoặc chưa cấp quyền truy cập Camera.', 'danger');
+            return;
+        }
+
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            qrVideo.srcObject = videoStream;
+            await qrVideo.play();
+
+            qrVideo.classList.remove('d-none');
+            cameraPlaceholder.classList.add('d-none');
+            startCamBtn.disabled = true;
+            stopCamBtn.disabled = false;
+            qrFileStatus.textContent = 'Đang quét Cam...';
+            qrFileStatus.className = 'badge bg-info text-dark';
+
+            const ctx = qrCameraCanvas.getContext('2d', { willReadFrequently: true });
+
+            cameraScanInterval = setInterval(() => {
+                if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA && typeof jsQR === 'function') {
+                    qrCameraCanvas.width = qrVideo.videoWidth;
+                    qrCameraCanvas.height = qrVideo.videoHeight;
+                    ctx.drawImage(qrVideo, 0, 0, qrCameraCanvas.width, qrCameraCanvas.height);
+
+                    const imageData = ctx.getImageData(0, 0, qrCameraCanvas.width, qrCameraCanvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+
+                    if (code && code.data) {
+                        playBeepSound();
+                        saveToHistory(code.data, 'Camera');
+                        qrFileStatus.textContent = 'Bắt được mã!';
+                        qrFileStatus.className = 'badge bg-success';
+                        showAlert('✅ Quét Webcam thành công!', `Nội dung: <span class="badge bg-dark fs-6">${code.data}</span>`, 'success', true, code.data);
+                        stopCamera(); // Tự động tắt cam sau khi bắt được mã
+                    }
+                }
+            }, 300); // Quét mỗi 0.3 giây
+        } catch (err) {
+            showAlert('❌ Lỗi mở Camera:', 'Không thể truy cập camera. Hãy kiểm tra quyền truy cập trên trình duyệt.', 'danger');
+        }
+    });
+
+    stopCamBtn.addEventListener('click', stopCamera);
+
+    // Tự động tắt camera nếu người dùng chuyển sang tab Tải Ảnh Lên
+    document.getElementById('tab-image-btn').addEventListener('click', stopCamera);
+
+    // Khởi tải lịch sử khi mở trang
+    loadHistory();
 });
 </script>
 <!-- === KẾT THÚC PHẦN 2 === -->
