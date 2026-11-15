@@ -1,34 +1,33 @@
-// === SIÊU BỘ LỌC LỊCH SỬ (HISTORY FILTERS PRO MAX) ===
+// === HỆ THỐNG LỊCH SỬ QUÉT PRO MAX (FILTERS, STATS, SORTING, PAGINATION & QUICK COPY) ===
 document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('search-parcel');     // Ô nhập từ khóa
-    const statusSelect = document.getElementById('filter-status');    // Lọc theo trạng thái
-    const sourceSelect = document.getElementById('filter-source');    // Lọc theo nguồn nhập
-    const startDateInput = document.getElementById('filter-start-date'); // Từ ngày
-    const endDateInput = document.getElementById('filter-end-date');     // Đến ngày
-    const clearBtn = document.getElementById('clear-filters-btn');      // Nút xóa bộ lọc
-    const exportFilteredBtn = document.getElementById('export-filtered-btn'); // Nút xuất CSV danh sách đã lọc
-    const historyTableRows = document.querySelectorAll('#history-table-body tr'); // Các dòng dữ liệu
-    const resultCountEl = document.getElementById('result-count');      // Hiển thị số kết quả
+    const searchInput = document.getElementById('search-parcel');     
+    const statusSelect = document.getElementById('filter-status');    
+    const sourceSelect = document.getElementById('filter-source');    
+    const startDateInput = document.getElementById('filter-start-date'); 
+    const endDateInput = document.getElementById('filter-end-date');     
+    const clearBtn = document.getElementById('clear-filters-btn');      
+    const exportFilteredBtn = document.getElementById('export-filtered-btn'); 
+    const historyTableBody = document.getElementById('history-table-body');
+    const historyTableRows = historyTableBody ? Array.from(historyTableBody.querySelectorAll('tr')) : []; 
+    const resultCountEl = document.getElementById('result-count');      
 
-    const STORAGE_PREFIX = 'smart_logistics_filter_state_';
+    // Thẻ thống kê nhanh (nếu có trên giao diện)
+    const statTotalEl = document.getElementById('stat-total');
+    const statSuccessEl = document.getElementById('stat-success');
+    const statPendingEl = document.getElementById('stat-pending');
 
-    // Khôi phục trạng thái bộ lọc từ LocalStorage khi tải trang
+    const STORAGE_PREFIX = 'smart_logistics_filter_state_pro_';
+
+    // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
         if (!searchInput) return;
-        const savedSearch = localStorage.getItem(STORAGE_PREFIX + 'search');
-        const savedStatus = localStorage.getItem(STORAGE_PREFIX + 'status');
-        const savedSource = localStorage.getItem(STORAGE_PREFIX + 'source');
-        const savedStart = localStorage.getItem(STORAGE_PREFIX + 'start');
-        const savedEnd = localStorage.getItem(STORAGE_PREFIX + 'end');
-
-        if (savedSearch && searchInput) searchInput.value = savedSearch;
-        if (savedStatus && statusSelect) statusSelect.value = savedStatus;
-        if (savedSource && sourceSelect) sourceSelect.value = savedSource;
-        if (savedStart && startDateInput) startDateInput.value = savedStart;
-        if (savedEnd && endDateInput) endDateInput.value = savedEnd;
+        if (localStorage.getItem(STORAGE_PREFIX + 'search')) searchInput.value = localStorage.getItem(STORAGE_PREFIX + 'search');
+        if (localStorage.getItem(STORAGE_PREFIX + 'status')) statusSelect.value = localStorage.getItem(STORAGE_PREFIX + 'status');
+        if (localStorage.getItem(STORAGE_PREFIX + 'source')) sourceSelect.value = localStorage.getItem(STORAGE_PREFIX + 'source');
+        if (localStorage.getItem(STORAGE_PREFIX + 'start')) startDateInput.value = localStorage.getItem(STORAGE_PREFIX + 'start');
+        if (localStorage.getItem(STORAGE_PREFIX + 'end')) endDateInput.value = localStorage.getItem(STORAGE_PREFIX + 'end');
     }
 
-    // Lưu trạng thái bộ lọc vào LocalStorage
     function saveFilterState() {
         if (!searchInput) return;
         localStorage.setItem(STORAGE_PREFIX + 'search', searchInput.value);
@@ -38,13 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem(STORAGE_PREFIX + 'end', endDateInput ? endDateInput.value : '');
     }
 
-    // Hàm xóa hiệu ứng tô sáng cũ
-    function removeHighlights(cell) {
-        if (!cell) return;
-        cell.innerHTML = cell.textContent;
-    }
-
-    // Hàm tô sáng từ khóa tìm kiếm (Highlighting)
+    // 2. Highlighting từ khóa
     function highlightText(cell, keyword) {
         if (!cell) return;
         const originalText = cell.textContent;
@@ -60,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Hàm thực thi bộ lọc chính
+    // 3. Hàm lọc chính & Cập nhật Thống kê Dashboard
     function applyFilters() {
         const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const selectedStatus = statusSelect ? statusSelect.value.trim().toLowerCase() : '';
@@ -68,28 +61,25 @@ document.addEventListener('DOMContentLoaded', function () {
         const startDate = startDateInput && startDateInput.value ? new Date(startDateInput.value) : null;
         const endDate = endDateInput && endDateInput.value ? new Date(endDateInput.value) : null;
         
-        // Đặt giờ kết thúc đến cuối ngày để bao trọn dữ liệu trong ngày đó
-        if (endDate) {
-            endDate.setHours(23, 59, 59, 999);
-        }
+        if (endDate) endDate.setHours(23, 59, 59, 999);
 
         let visibleCount = 0;
+        let successCount = 0;
+        let pendingCount = 0;
 
         historyTableRows.forEach(row => {
-            const codeCell = row.cells[1]; // Cột mã kiện
-            const timeCell = row.cells[0]; // Cột thời gian
+            const codeCell = row.cells[1]; 
+            const timeCell = row.cells[0]; 
             
             const parcelCode = (row.getAttribute('data-code') || (codeCell ? codeCell.innerText : '')).toLowerCase();
             const status = (row.getAttribute('data-status') || (row.cells[4] ? row.cells[4].innerText : '')).toLowerCase();
             const source = (row.getAttribute('data-source') || (row.cells[6] ? row.cells[6].innerText : '')).toLowerCase();
             const rowTimeString = row.getAttribute('data-time') || (timeCell ? timeCell.innerText : '');
 
-            // Kiểm tra điều kiện từ khóa & danh mục
             let matchKeyword = parcelCode.includes(keyword);
             let matchStatus = !selectedStatus || status.includes(selectedStatus);
             let matchSource = !selectedSource || source.includes(selectedSource);
 
-            // Kiểm tra điều kiện khoảng thời gian
             let matchDate = true;
             if ((startDate || endDate) && rowTimeString) {
                 const rowDate = new Date(rowTimeString);
@@ -102,34 +92,59 @@ document.addEventListener('DOMContentLoaded', function () {
             if (matchKeyword && matchStatus && matchSource && matchDate) {
                 row.style.display = '';
                 visibleCount++;
-                // Tô sáng từ khóa tại ô mã kiện
+
+                // Thống kê trạng thái các dòng hiển thị
+                if (status.includes('thành công') || status.includes('success') || status.includes('hoàn thành')) {
+                    successCount++;
+                } else {
+                    pendingCount++;
+                }
+
                 if (codeCell && keyword) {
                     highlightText(codeCell, keyword);
                 } else if (codeCell) {
-                    removeHighlights(codeCell);
+                    codeCell.innerHTML = codeCell.textContent;
                 }
             } else {
                 row.style.display = 'none';
-                if (codeCell) removeHighlights(codeCell);
+                if (codeCell) codeCell.innerHTML = codeCell.textContent;
             }
         });
 
-        // Cập nhật số lượng hiển thị
+        // Cập nhật số liệu giao diện
         if (resultCountEl) {
             resultCountEl.innerText = `Hiển thị ${visibleCount} / ${historyTableRows.length} kết quả phù hợp`;
         }
+        if (statTotalEl) statTotalEl.innerText = visibleCount;
+        if (statSuccessEl) statSuccessEl.innerText = successCount;
+        if (statPendingEl) statPendingEl.innerText = pendingCount;
 
         saveFilterState();
     }
 
-    // Đăng ký sự kiện lắng nghe tương tác
+    // 4. Tính năng Sao chép nhanh Mã kiện khi bấm đúp chuột vào ô mã
+    if (historyTableBody) {
+        historyTableBody.addEventListener('dblclick', function (e) {
+            const cell = e.target.closest('td');
+            if (cell && cell.cellIndex === 1) { // Cột mã kiện
+                const textToCopy = cell.textContent.trim();
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    // Hiển thị thông báo nhỏ tạm thời
+                    const originalBg = cell.style.backgroundColor;
+                    cell.style.backgroundColor = '#d1e7dd';
+                    setTimeout(() => { cell.style.backgroundColor = originalBg; }, 500);
+                });
+            }
+        });
+    }
+
+    // 5. Sự kiện tương tác bộ lọc
     if (searchInput) searchInput.addEventListener('input', applyFilters);
     if (statusSelect) statusSelect.addEventListener('change', applyFilters);
     if (sourceSelect) sourceSelect.addEventListener('change', applyFilters);
     if (startDateInput) startDateInput.addEventListener('change', applyFilters);
     if (endDateInput) endDateInput.addEventListener('change', applyFilters);
 
-    // Nút xóa bộ lọc
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
             if (searchInput) searchInput.value = '';
@@ -138,38 +153,28 @@ document.addEventListener('DOMContentLoaded', function () {
             if (startDateInput) startDateInput.value = '';
             if (endDateInput) endDateInput.value = '';
             
-            // Xóa LocalStorage
-            localStorage.removeItem(STORAGE_PREFIX + 'search');
-            localStorage.removeItem(STORAGE_PREFIX + 'status');
-            localStorage.removeItem(STORAGE_PREFIX + 'source');
-            localStorage.removeItem(STORAGE_PREFIX + 'start');
-            localStorage.removeItem(STORAGE_PREFIX + 'end');
-
+            localStorage.clear();
             applyFilters();
         });
     }
 
-    // Nút xuất file CSV chỉ lấy các dòng đang hiển thị sau khi lọc
+    // 6. Xuất CSV danh sách đã lọc
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', function () {
             let csvContent = "data:text/csv;charset=utf-8,ThoiGian,MaDonHang,TrangThai,NguonNhap\n";
-            let exportedRowsCount = 0;
+            let exportedCount = 0;
 
             historyTableRows.forEach(row => {
                 if (row.style.display !== 'none') {
                     const cols = row.querySelectorAll('td');
                     if (cols.length >= 7) {
-                        const timeVal = cols[0].innerText.trim();
-                        const codeVal = cols[1].innerText.trim();
-                        const statusVal = cols[4].innerText.trim();
-                        const sourceVal = cols[6].innerText.trim();
-                        csvContent += `"${timeVal}","${codeVal}","${statusVal}","${sourceVal}"\n`;
-                        exportedRowsCount++;
+                        csvContent += `"${cols[0].innerText.trim()}","${cols[1].innerText.trim()}","${cols[4].innerText.trim()}","${cols[6].innerText.trim()}"\n`;
+                        exportedCount++;
                     }
                 }
             });
 
-            if (exportedRowsCount === 0) {
+            if (exportedCount === 0) {
                 alert("Không có dữ liệu phù hợp để xuất file!");
                 return;
             }
@@ -177,14 +182,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "filtered_logistics_history.csv");
+            link.setAttribute("download", "smart_logistics_pro_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         });
     }
 
-    // Khởi chạy ban đầu
+    // Khởi chạy
     restoreFilterState();
     applyFilters();
 });
