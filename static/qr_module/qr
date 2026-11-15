@@ -1,5 +1,4 @@
-<!-- === BẮT ĐẦU PHẦN 2: ĐỌC MỘT ẢNH QR (NÂNG CẤP) === -->
-<!-- Nhúng thư viện jsQR có sẵn của dự án (Bỏ dòng này nếu dán vào templates/index.html vì đã có sẵn) -->
+<!-- === BẮT ĐẦU PHẦN 2: ĐỌC MỘT ẢNH QR (NÂNG CẤP HOÀN CHỈNH) === -->
 <script src="{{ url_for('static', filename='vendor/jsQR.js') }}"></script>
 
 <div class="card shadow-sm mb-4" id="single-qr-section">
@@ -26,7 +25,7 @@
             </div>
         </div>
 
-        <!-- Cụm nút điều khiển (Responsive trên cửa sổ hẹp) -->
+        <!-- Cụm nút điều khiển -->
         <div class="d-flex gap-2 mb-3">
             <button id="scanBtn" class="btn btn-success flex-grow-1 fw-bold" disabled>
                 🔍 Quét Mã QR
@@ -36,8 +35,11 @@
             </button>
         </div>
 
-        <!-- Khu vực hiển thị thông báo kết quả (Màu sắc kèm chữ rõ ràng) -->
-        <div id="scanResultAlert" class="alert d-none mb-0" role="alert"></div>
+        <!-- Khu vực hiển thị thông báo kết quả kèm nút Sao chép -->
+        <div id="scanResultAlert" class="alert d-none mb-0 align-items-center justify-content-between flex-wrap gap-2" role="alert">
+            <div id="alertContentText" class="flex-grow-1"></div>
+            <button id="copyResultBtn" class="btn btn-sm btn-outline-dark d-none" type="button">📋 Sao chép</button>
+        </div>
     </div>
 </div>
 
@@ -52,19 +54,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const scanBtn = document.getElementById('scanBtn');
     const clearQrBtn = document.getElementById('clearQrBtn');
     const scanResultAlert = document.getElementById('scanResultAlert');
+    const alertContentText = document.getElementById('alertContentText');
+    const copyResultBtn = document.getElementById('copyResultBtn');
 
-    // Hàm hiển thị thông báo kèm trạng thái chữ rõ ràng
-    function showAlert(title, message, type) {
-        scanResultAlert.className = `alert alert-${type} mb-0`;
-        scanResultAlert.innerHTML = `<strong>${title}</strong><br>${message}`;
+    let lastDecodedText = ''; // Lưu lại mã QR vừa đọc được để phục vụ tính năng sao chép
+
+    function showAlert(title, message, type, showCopy = false, rawText = '') {
+        scanResultAlert.className = `alert alert-${type} mb-0 d-flex align-items-center justify-content-between flex-wrap gap-2`;
+        alertContentText.innerHTML = `<strong>${title}</strong><br>${message}`;
+        
+        if (showCopy && rawText) {
+            lastDecodedText = rawText;
+            copyResultBtn.classList.remove('d-none');
+        } else {
+            copyResultBtn.classList.add('d-none');
+        }
+        
         scanResultAlert.classList.remove('d-none');
     }
 
-    // Hàm xử lý khi có file được chọn hoặc kéo thả
     function handleImageFile(file) {
         if (!file) return;
 
-        // Kiểm tra định dạng file
         if (!file.type.startsWith('image/')) {
             showAlert('⚠️ Lỗi định dạng tệp:', 'Vui lòng chỉ chọn tệp hình ảnh (PNG, JPG, WEBP).', 'danger');
             resetUI();
@@ -77,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
             qrPreview.style.display = 'block';
             placeholderText.style.display = 'none';
 
-            // Hiển thị thông tin tên và dung lượng ảnh
             const sizeKB = (file.size / 1024).toFixed(1);
             fileInfoText.textContent = `Tệp: ${file.name} (${sizeKB} KB)`;
             fileInfoText.classList.remove('d-none');
@@ -88,11 +98,11 @@ document.addEventListener('DOMContentLoaded', function () {
             scanBtn.disabled = false;
             clearQrBtn.disabled = false;
             scanResultAlert.classList.add('d-none');
+            copyResultBtn.classList.add('d-none');
         };
         reader.readAsDataURL(file);
     }
 
-    // Hàm đặt lại giao diện về ban đầu
     function resetUI() {
         qrImageInput.value = '';
         qrPreview.src = '#';
@@ -104,14 +114,14 @@ document.addEventListener('DOMContentLoaded', function () {
         scanBtn.disabled = true;
         clearQrBtn.disabled = true;
         scanResultAlert.classList.add('d-none');
+        copyResultBtn.classList.add('d-none');
+        lastDecodedText = '';
     }
 
-    // Sự kiện chọn file qua input
     qrImageInput.addEventListener('change', function (event) {
         handleImageFile(event.target.files[0]);
     });
 
-    // Hỗ trợ kéo thả ảnh (Drag & Drop)
     dropZone.addEventListener('dragover', function (e) {
         e.preventDefault();
         dropZone.classList.replace('bg-light', 'bg-info-subtle');
@@ -128,10 +138,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Nút xóa ảnh
     clearQrBtn.addEventListener('click', resetUI);
 
-    // Sự kiện quét mã QR thật từ ảnh bằng thư viện jsQR
+    // Tính năng sao chép kết quả vào bộ nhớ tạm
+    copyResultBtn.addEventListener('click', function() {
+        if (lastDecodedText) {
+            navigator.clipboard.writeText(lastDecodedText).then(() => {
+                const originalText = copyResultBtn.innerHTML;
+                copyResultBtn.innerHTML = '✅ Đã chép!';
+                setTimeout(() => {
+                    copyResultBtn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+    });
+
     scanBtn.addEventListener('click', function () {
         if (!qrPreview.src || qrPreview.style.display === 'none') {
             showAlert('⚠️ Thiếu ảnh:', 'Vui lòng chọn một ảnh trước khi bấm quét!', 'warning');
@@ -139,9 +160,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         scanBtn.disabled = true;
-        scanBtn.innerHTML = '⏳ Đang giải mã...';
+        scanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Đang giải mã...';
 
-        // Tạo canvas ẩn để lấy dữ liệu pixel của ảnh
         const img = new Image();
         img.onload = function () {
             const canvas = document.createElement('canvas');
@@ -152,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-            // Gọi thư viện jsQR để quét mã
             if (typeof jsQR === 'function') {
                 const code = jsQR(imageData.data, imageData.width, imageData.height, {
                     inversionAttempts: 'dontInvert',
@@ -163,8 +182,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     qrFileStatus.className = 'badge bg-success';
                     showAlert(
                         '✅ Đọc mã QR thành công!',
-                        `Nội dung mã QR: <span class="badge bg-dark fs-6">${code.data}</span>`,
-                        'success'
+                        `Nội dung: <span class="badge bg-dark fs-6">${code.data}</span>`,
+                        'success',
+                        true,
+                        code.data
                     );
                 } else {
                     qrFileStatus.textContent = 'Không thấy mã';
@@ -172,11 +193,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     showAlert(
                         '❌ Không tìm thấy mã QR:',
                         'Ảnh này không chứa mã QR hoặc mã quá mờ. Vui lòng thử ảnh khác.',
-                        'danger'
+                        'danger',
+                        false
                     );
                 }
             } else {
-                showAlert('⚠️ Lỗi hệ thống:', 'Không tải được thư viện giải mã jsQR.', 'danger');
+                showAlert('⚠️ Lỗi hệ thống:', 'Không tải được thư viện giải mã jsQR.', 'danger', false);
             }
 
             scanBtn.disabled = false;
