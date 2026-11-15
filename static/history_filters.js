@@ -1,4 +1,4 @@
-// === HỆ THỐNG LỊCH SỬ QUÉT AI-POWERED ENTERPRISE EDITION ===
+// === HỆ THỐNG LỊCH SỬ QUÉT SMART AI ASSISTANT EDITION ===
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-parcel');     
     const statusSelect = document.getElementById('filter-status');    
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentPage = 1;
     const rowsPerPage = 15; 
 
-    const STORAGE_PREFIX = 'smart_logistics_ai_enterprise_';
+    const STORAGE_PREFIX = 'smart_logistics_ai_assistant_';
 
     // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
@@ -60,29 +60,53 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 3. Hàm lọc chính với Cú pháp nâng cao & Hiệu ứng mượt mà
+    // 3. Phân tích ngôn ngữ tự nhiên (Natural Language Parsing cho ô tìm kiếm)
+    function parseNaturalLanguageQuery(query) {
+        let cleanKeyword = query;
+        let detectedStatus = '';
+        let detectedSource = '';
+        let targetDate = null;
+
+        const lowerQ = query.toLowerCase();
+
+        // Xử lý từ khóa trạng thái tiếng Việt
+        if (lowerQ.includes('thành công') || lowerQ.includes('hoàn thành')) {
+            detectedStatus = 'thành công';
+            cleanKeyword = cleanKeyword.replace(/thành công|hoàn thành/gi, '');
+        } else if (lowerQ.includes('đang xử lý') || lowerQ.includes('chờ') || lowerQ.includes('lỗi')) {
+            detectedStatus = 'đang xử lý';
+            cleanKeyword = cleanKeyword.replace(/đang xử lý|chờ|lỗi/gi, '');
+        }
+
+        // Xử lý nguồn nhập nhanh
+        if (lowerQ.includes('nguồn qr') || lowerQ.includes('qr')) {
+            detectedSource = 'qr';
+            cleanKeyword = cleanKeyword.replace(/nguồn qr|qr/gi, '');
+        }
+
+        // Xử lý thời gian nhanh: "hôm nay"
+        if (lowerQ.includes('hôm nay')) {
+            targetDate = new Date();
+            cleanKeyword = cleanKeyword.replace(/hôm nay/gi, '');
+        }
+
+        return {
+            keyword: cleanKeyword.trim(),
+            status: detectedStatus,
+            source: detectedSource,
+            date: targetDate
+        };
+    }
+
+    // 4. Hàm lọc chính tích hợp AI Natural Language & Phân trang
     function applyFilters() {
         const rawQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
-        let keyword = rawQuery;
-        let queryStatusOverride = '';
-        let querySourceOverride = '';
+        const aiParsed = parseNaturalLanguageQuery(rawQuery);
 
-        // Hỗ trợ cú pháp nâng cao dạng "status:thành công" hoặc "source:qr"
-        if (rawQuery.includes('status:')) {
-            const parts = rawQuery.split('status:');
-            keyword = parts[0].trim();
-            queryStatusOverride = parts[1].split(' ')[0].trim();
-        }
-        if (rawQuery.includes('source:')) {
-            const parts = rawQuery.split('source:');
-            keyword = parts[0].trim();
-            querySourceOverride = parts[1].split(' ')[0].trim();
-        }
-
-        const selectedStatus = queryStatusOverride || (statusSelect ? statusSelect.value.trim().toLowerCase() : '');
-        const selectedSource = querySourceOverride || (sourceSelect ? sourceSelect.value.trim().toLowerCase() : '');
-        const startDate = startDateInput && startDateInput.value ? new Date(startDateInput.value) : null;
-        const endDate = endDateInput && endDateInput.value ? new Date(endDateInput.value) : null;
+        const selectedStatus = aiParsed.status || (statusSelect ? statusSelect.value.trim().toLowerCase() : '');
+        const selectedSource = aiParsed.source || (sourceSelect ? sourceSelect.value.trim().toLowerCase() : '');
+        const startDate = startDateInput && startDateInput.value ? new Date(startDateInput.value) : (aiParsed.date ? new Date(aiParsed.date.setHours(0,0,0,0)) : null);
+        const endDate = endDateInput && endDateInput.value ? new Date(endDateInput.value) : (aiParsed.date ? new Date(aiParsed.date.setHours(23,59,59,999)) : null);
         
         if (endDate) endDate.setHours(23, 59, 59, 999);
 
@@ -99,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const source = (row.getAttribute('data-source') || (row.cells[6] ? row.cells[6].innerText : '')).toLowerCase();
             const rowTimeString = row.getAttribute('data-time') || (timeCell ? timeCell.innerText : '');
 
-            let matchKeyword = !keyword || parcelCode.includes(keyword);
+            let matchKeyword = !aiParsed.keyword || parcelCode.includes(aiParsed.keyword);
             let matchStatus = !selectedStatus || status.includes(selectedStatus);
             let matchSource = !selectedSource || source.includes(selectedSource);
 
@@ -120,8 +144,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     pendingCount++;
                 }
 
-                if (codeCell && keyword) {
-                    highlightText(codeCell, keyword);
+                if (codeCell && aiParsed.keyword) {
+                    highlightText(codeCell, aiParsed.keyword);
                 } else if (codeCell) {
                     codeCell.innerHTML = codeCell.textContent;
                 }
@@ -144,14 +168,13 @@ document.addEventListener('DOMContentLoaded', function () {
         for (let i = startIndex; i < endIndex && i < totalFiltered; i++) {
             const row = filteredRows[i];
             row.style.display = '';
-            // Hiệu ứng Fade-in mượt mà khi hiển thị
             row.style.opacity = '0';
-            setTimeout(() => { row.style.opacity = '1'; row.style.transition = 'opacity 0.3s ease-in-out'; }, 50);
+            setTimeout(() => { row.style.opacity = '1'; row.style.transition = 'opacity 0.25s ease-in-out'; }, 30);
         }
 
         // Cập nhật giao diện thống kê
         if (resultCountEl) {
-            resultCountEl.innerText = `Hiển thị ${totalFiltered} / ${historyTableRows.length} kết quả phù hợp (Trang ${currentPage}/${totalPages})`;
+            resultCountEl.innerText = `Hiển thị ${totalFiltered} / ${historyTableRows.length} kết quả (Trang ${currentPage}/${totalPages})`;
         }
         if (statTotalEl) statTotalEl.innerText = totalFiltered;
         if (statSuccessEl) statSuccessEl.innerText = successCount;
@@ -166,20 +189,17 @@ document.addEventListener('DOMContentLoaded', function () {
         saveFilterState();
     }
 
-    // 4. Phím tắt thông minh (Keyboard Shortcuts: Ctrl+K để tìm kiếm, Esc để reset)
+    // 5. Phím tắt thông minh (Ctrl+K để tìm kiếm, Esc để reset)
     document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
-            }
+            if (searchInput) { searchInput.focus(); searchInput.select(); }
         } else if (e.key === 'Escape') {
             if (clearBtn) clearBtn.click();
         }
     });
 
-    // 5. Sắp xếp cột bảng (Sorting)
+    // 6. Sắp xếp cột bảng (Sorting)
     const tableHeaders = document.querySelectorAll('#history-table th');
     tableHeaders.forEach((th, index) => {
         th.style.cursor = 'pointer';
@@ -197,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 6. Sao chép nhanh khi bấm đúp chuột
+    // 7. Sao chép nhanh khi bấm đúp chuột
     if (historyTableBody) {
         historyTableBody.addEventListener('dblclick', function (e) {
             const cell = e.target.closest('td');
@@ -212,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Lắng nghe sự kiện
+    // 8. Đăng ký sự kiện
     if (searchInput) searchInput.addEventListener('input', () => { currentPage = 1; applyFilters(); });
     if (statusSelect) statusSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
     if (sourceSelect) sourceSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
@@ -232,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 8. Xuất CSV thông minh
+    // 9. Xuất CSV thông minh
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', function () {
             let csvContent = "data:text/csv;charset=utf-8,ThoiGian,MaDonHang,TrangThai,NguonNhap\n";
@@ -256,21 +276,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "smart_logistics_ai_enterprise_history.csv");
+            link.setAttribute("download", "smart_logistics_ai_assistant_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         });
     }
 
-    // 9. In báo cáo / Lưu PDF chuyên nghiệp
+    // 10. In báo cáo
     if (printReportBtn) {
-        printReportBtn.addEventListener('click', function () {
-            window.print();
-        });
+        printReportBtn.addEventListener('click', function () { window.print(); });
     }
 
-    // Khởi chạy hệ thống
+    // Khởi chạy
     restoreFilterState();
     applyFilters();
 });
