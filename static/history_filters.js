@@ -1,4 +1,4 @@
-// === HỆ THỐNG LỊCH SỬ QUÉT PRO MAX (FILTERS, STATS, SORTING, PAGINATION & QUICK COPY) ===
+// === HỆ THỐNG LỊCH SỬ QUÉT ULTIMATE PRO MAX (SORTING, QUICK BADGES, PRINT & STATS) ===
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-parcel');     
     const statusSelect = document.getElementById('filter-status');    
@@ -7,16 +7,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDateInput = document.getElementById('filter-end-date');     
     const clearBtn = document.getElementById('clear-filters-btn');      
     const exportFilteredBtn = document.getElementById('export-filtered-btn'); 
+    const printReportBtn = document.getElementById('print-report-btn'); // Nút in báo cáo mới
     const historyTableBody = document.getElementById('history-table-body');
     const historyTableRows = historyTableBody ? Array.from(historyTableBody.querySelectorAll('tr')) : []; 
     const resultCountEl = document.getElementById('result-count');      
 
-    // Thẻ thống kê nhanh (nếu có trên giao diện)
+    // Thẻ thống kê nhanh
     const statTotalEl = document.getElementById('stat-total');
     const statSuccessEl = document.getElementById('stat-success');
     const statPendingEl = document.getElementById('stat-pending');
 
-    const STORAGE_PREFIX = 'smart_logistics_filter_state_pro_';
+    const STORAGE_PREFIX = 'smart_logistics_filter_ultimate_';
 
     // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
@@ -53,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 3. Hàm lọc chính & Cập nhật Thống kê Dashboard
+    // 3. Hàm lọc chính & Cập nhật Dashboard
     function applyFilters() {
         const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const selectedStatus = statusSelect ? statusSelect.value.trim().toLowerCase() : '';
@@ -93,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.style.display = '';
                 visibleCount++;
 
-                // Thống kê trạng thái các dòng hiển thị
                 if (status.includes('thành công') || status.includes('success') || status.includes('hoàn thành')) {
                     successCount++;
                 } else {
@@ -111,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Cập nhật số liệu giao diện
         if (resultCountEl) {
             resultCountEl.innerText = `Hiển thị ${visibleCount} / ${historyTableRows.length} kết quả phù hợp`;
         }
@@ -122,14 +121,32 @@ document.addEventListener('DOMContentLoaded', function () {
         saveFilterState();
     }
 
-    // 4. Tính năng Sao chép nhanh Mã kiện khi bấm đúp chuột vào ô mã
+    // 4. Tính năng Sắp xếp bảng theo cột (Sorting khi bấm vào tiêu đề th)
+    const tableHeaders = document.querySelectorAll('#history-table th');
+    tableHeaders.forEach((th, index) => {
+        th.style.cursor = 'pointer';
+        th.title = 'Bấm để sắp xếp';
+        let isAsc = true;
+        th.addEventListener('click', function () {
+            isAsc = !isAsc;
+            historyTableRows.sort((rowA, rowB) => {
+                const valA = rowA.cells[index] ? rowA.cells[index].innerText.trim() : '';
+                const valB = rowB.cells[index] ? rowB.cells[index].innerText.trim() : '';
+                return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            });
+            // Gắn lại các dòng đã sắp xếp vào tbody
+            historyTableRows.forEach(row => historyTableBody.appendChild(row));
+            applyFilters();
+        });
+    });
+
+    // 5. Tính năng Sao chép nhanh Mã kiện khi bấm đúp chuột
     if (historyTableBody) {
         historyTableBody.addEventListener('dblclick', function (e) {
             const cell = e.target.closest('td');
-            if (cell && cell.cellIndex === 1) { // Cột mã kiện
+            if (cell && cell.cellIndex === 1) {
                 const textToCopy = cell.textContent.trim();
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    // Hiển thị thông báo nhỏ tạm thời
                     const originalBg = cell.style.backgroundColor;
                     cell.style.backgroundColor = '#d1e7dd';
                     setTimeout(() => { cell.style.backgroundColor = originalBg; }, 500);
@@ -138,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 5. Sự kiện tương tác bộ lọc
+    // 6. Đăng ký sự kiện lắng nghe bộ lọc
     if (searchInput) searchInput.addEventListener('input', applyFilters);
     if (statusSelect) statusSelect.addEventListener('change', applyFilters);
     if (sourceSelect) sourceSelect.addEventListener('change', applyFilters);
@@ -152,13 +169,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (sourceSelect) sourceSelect.value = '';
             if (startDateInput) startDateInput.value = '';
             if (endDateInput) endDateInput.value = '';
-            
             localStorage.clear();
             applyFilters();
         });
     }
 
-    // 6. Xuất CSV danh sách đã lọc
+    // 7. Xuất file CSV danh sách đã lọc
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', function () {
             let csvContent = "data:text/csv;charset=utf-8,ThoiGian,MaDonHang,TrangThai,NguonNhap\n";
@@ -182,10 +198,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "smart_logistics_pro_history.csv");
+            link.setAttribute("download", "smart_logistics_ultimate_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        });
+    }
+
+    // 8. Tính năng In hoặc Lưu báo cáo PDF
+    if (printReportBtn) {
+        printReportBtn.addEventListener('click', function () {
+            window.print();
         });
     }
 
