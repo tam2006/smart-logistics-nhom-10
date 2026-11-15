@@ -1,4 +1,4 @@
-// === HỆ THỐNG LỊCH SỬ QUÉT ULTIMATE PRO MAX (SORTING, QUICK BADGES, PRINT & STATS) ===
+// === HỆ THỐNG LỊCH SỬ QUÉT ENTERPRISE EDITION (PAGINATION, VISUAL PROGRESS BAR & ADVANCED FILTERS) ===
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-parcel');     
     const statusSelect = document.getElementById('filter-status');    
@@ -7,17 +7,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDateInput = document.getElementById('filter-end-date');     
     const clearBtn = document.getElementById('clear-filters-btn');      
     const exportFilteredBtn = document.getElementById('export-filtered-btn'); 
-    const printReportBtn = document.getElementById('print-report-btn'); // Nút in báo cáo mới
+    const printReportBtn = document.getElementById('print-report-btn'); 
+    
     const historyTableBody = document.getElementById('history-table-body');
     const historyTableRows = historyTableBody ? Array.from(historyTableBody.querySelectorAll('tr')) : []; 
     const resultCountEl = document.getElementById('result-count');      
 
-    // Thẻ thống kê nhanh
+    // Thống kê nhanh & Thanh tiến độ (Progress Bar)
     const statTotalEl = document.getElementById('stat-total');
     const statSuccessEl = document.getElementById('stat-success');
     const statPendingEl = document.getElementById('stat-pending');
+    const progressBarEl = document.getElementById('success-progress-bar'); // Thanh progress bar trực quan (nếu có)
 
-    const STORAGE_PREFIX = 'smart_logistics_filter_ultimate_';
+    // Phân trang (Pagination)
+    let currentPage = 1;
+    const rowsPerPage = 15; // Số dòng hiển thị mỗi trang
+
+    const STORAGE_PREFIX = 'smart_logistics_enterprise_';
 
     // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
@@ -54,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 3. Hàm lọc chính & Cập nhật Dashboard
+    // 3. Hàm lọc chính kết hợp Phân trang & Biểu đồ trực quan
     function applyFilters() {
         const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const selectedStatus = statusSelect ? statusSelect.value.trim().toLowerCase() : '';
@@ -64,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (endDate) endDate.setHours(23, 59, 59, 999);
 
-        let visibleCount = 0;
+        let filteredRows = [];
         let successCount = 0;
         let pendingCount = 0;
 
@@ -91,9 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (matchKeyword && matchStatus && matchSource && matchDate) {
-                row.style.display = '';
-                visibleCount++;
-
+                filteredRows.push(row);
                 if (status.includes('thành công') || status.includes('success') || status.includes('hoàn thành')) {
                     successCount++;
                 } else {
@@ -111,21 +115,43 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        if (resultCountEl) {
-            resultCountEl.innerText = `Hiển thị ${visibleCount} / ${historyTableRows.length} kết quả phù hợp`;
+        // Xử lý phân trang (Pagination)
+        const totalFiltered = filteredRows.length;
+        const totalPages = Math.ceil(totalFiltered / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+
+        historyTableRows.forEach(row => { row.style.display = 'none'; }); // Ẩn tất cả trước
+
+        for (let i = startIndex; i < endIndex && i < totalFiltered; i++) {
+            filteredRows[i].style.display = ''; // Chỉ hiện thị các dòng thuộc trang hiện tại
         }
-        if (statTotalEl) statTotalEl.innerText = visibleCount;
+
+        // Cập nhật giao diện thống kê & tiến độ
+        if (resultCountEl) {
+            resultCountEl.innerText = `Hiển thị ${totalFiltered} / ${historyTableRows.length} kết quả (Trang ${currentPage}/${totalPages})`;
+        }
+        if (statTotalEl) statTotalEl.innerText = totalFiltered;
         if (statSuccessEl) statSuccessEl.innerText = successCount;
         if (statPendingEl) statPendingEl.innerText = pendingCount;
+
+        // Cập nhật thanh Progress Bar nếu có trên giao diện
+        if (progressBarEl && totalFiltered > 0) {
+            const successPercent = (successCount / totalFiltered) * 100;
+            progressBarEl.style.width = successPercent + '%';
+            progressBarEl.setAttribute('aria-valuenow', successPercent);
+        }
 
         saveFilterState();
     }
 
-    // 4. Tính năng Sắp xếp bảng theo cột (Sorting khi bấm vào tiêu đề th)
+    // 4. Sắp xếp cột bảng (Sorting)
     const tableHeaders = document.querySelectorAll('#history-table th');
     tableHeaders.forEach((th, index) => {
         th.style.cursor = 'pointer';
-        th.title = 'Bấm để sắp xếp';
+        th.title = 'Bấm để sắp xếp tăng/giảm dần';
         let isAsc = true;
         th.addEventListener('click', function () {
             isAsc = !isAsc;
@@ -134,13 +160,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const valB = rowB.cells[index] ? rowB.cells[index].innerText.trim() : '';
                 return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             });
-            // Gắn lại các dòng đã sắp xếp vào tbody
             historyTableRows.forEach(row => historyTableBody.appendChild(row));
             applyFilters();
         });
     });
 
-    // 5. Tính năng Sao chép nhanh Mã kiện khi bấm đúp chuột
+    // 5. Sao chép nhanh khi bấm đúp chuột
     if (historyTableBody) {
         historyTableBody.addEventListener('dblclick', function (e) {
             const cell = e.target.closest('td');
@@ -155,12 +180,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 6. Đăng ký sự kiện lắng nghe bộ lọc
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-    if (statusSelect) statusSelect.addEventListener('change', applyFilters);
-    if (sourceSelect) sourceSelect.addEventListener('change', applyFilters);
-    if (startDateInput) startDateInput.addEventListener('change', applyFilters);
-    if (endDateInput) endDateInput.addEventListener('change', applyFilters);
+    // 6. Sự kiện lắng nghe tương tác
+    if (searchInput) searchInput.addEventListener('input', () => { currentPage = 1; applyFilters(); });
+    if (statusSelect) statusSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
+    if (sourceSelect) sourceSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
+    if (startDateInput) startDateInput.addEventListener('change', () => { currentPage = 1; applyFilters(); });
+    if (endDateInput) endDateInput.addEventListener('change', () => { currentPage = 1; applyFilters(); });
 
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
@@ -170,11 +195,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (startDateInput) startDateInput.value = '';
             if (endDateInput) endDateInput.value = '';
             localStorage.clear();
+            currentPage = 1;
             applyFilters();
         });
     }
 
-    // 7. Xuất file CSV danh sách đã lọc
+    // 7. Xuất CSV theo kết quả lọc
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', function () {
             let csvContent = "data:text/csv;charset=utf-8,ThoiGian,MaDonHang,TrangThai,NguonNhap\n";
@@ -198,14 +224,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "smart_logistics_ultimate_history.csv");
+            link.setAttribute("download", "smart_logistics_enterprise_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         });
     }
 
-    // 8. Tính năng In hoặc Lưu báo cáo PDF
+    // 8. In báo cáo
     if (printReportBtn) {
         printReportBtn.addEventListener('click', function () {
             window.print();
