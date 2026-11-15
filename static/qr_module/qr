@@ -1,74 +1,189 @@
-<!-- === BẮT ĐẦU PHẦN 2: ĐỌC MỘT ẢNH QR CỦA BẠN === -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">📦 Phần 2: Đọc Một Ảnh QR</h5>
+<!-- === BẮT ĐẦU PHẦN 2: ĐỌC MỘT ẢNH QR (NÂNG CẤP) === -->
+<!-- Nhúng thư viện jsQR có sẵn của dự án (Bỏ dòng này nếu dán vào templates/index.html vì đã có sẵn) -->
+<script src="{{ url_for('static', filename='vendor/jsQR.js') }}"></script>
+
+<div class="card shadow-sm mb-4" id="single-qr-section">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📦 Đọc Một Ảnh QR</h5>
+        <span class="badge bg-light text-primary" id="qrFileStatus">Chưa chọn tệp</span>
     </div>
     <div class="card-body">
-        <!-- Ô chọn file ảnh QR -->
-        <div class="mb-3">
-            <label for="qrImageInput" class="form-label">Chọn ảnh chứa mã QR đơn hàng:</label>
-            <input class="form-control" type="file" id="qrImageInput" accept="image/*">
+        <!-- Vùng chọn / kéo thả ảnh QR -->
+        <div id="dropZone" class="border border-2 border-dashed rounded p-3 text-center mb-3 bg-light" style="cursor: pointer; transition: 0.2s;">
+            <label for="qrImageInput" class="form-label fw-bold mb-1" style="cursor: pointer;">
+                Chọn hoặc kéo thả ảnh chứa mã QR vào đây
+            </label>
+            <p class="text-muted small mb-2">Hỗ trợ định dạng: PNG, JPG, JPEG, WEBP</p>
+            <input class="form-control form-control-sm" type="file" id="qrImageInput" accept="image/png, image/jpeg, image/jpg, image/webp">
         </div>
 
-        <!-- Ảnh xem trước (Preview) -->
-        <div class="mb-3 text-center">
-            <div class="border p-2 rounded bg-light" style="min-height: 150px; display: flex; align-items: center; justify-content: center;">
-                <img id="qrPreview" src="#" alt="Ảnh xem trước QR" style="max-width: 100%; max-height: 250px; display: none; border-radius: 4px;" />
-                <span id="placeholderText" class="text-muted">Chưa có ảnh nào được chọn</span>
+        <!-- Khu vực hiển thị ảnh xem trước (Preview) -->
+        <div class="mb-3 text-center position-relative">
+            <div class="border p-2 rounded bg-white" style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <img id="qrPreview" src="#" alt="Ảnh xem trước QR" style="max-width: 100%; max-height: 260px; display: none; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+                <span id="placeholderText" class="text-muted">🖼️ Ảnh xem trước sẽ hiển thị tại đây</span>
+                <small id="fileInfoText" class="text-secondary mt-2 d-none"></small>
             </div>
         </div>
 
-        <!-- Nút quét mã -->
-        <button id="scanBtn" class="btn btn-success w-100 mb-3">Quét Mã QR</button>
+        <!-- Cụm nút điều khiển (Responsive trên cửa sổ hẹp) -->
+        <div class="d-flex gap-2 mb-3">
+            <button id="scanBtn" class="btn btn-success flex-grow-1 fw-bold" disabled>
+                🔍 Quét Mã QR
+            </button>
+            <button id="clearQrBtn" class="btn btn-outline-secondary" type="button" disabled>
+                ✖ Xóa
+            </button>
+        </div>
 
-        <!-- Thông báo kết quả -->
-        <div id="scanResultAlert" class="alert d-none" role="alert"></div>
+        <!-- Khu vực hiển thị thông báo kết quả (Màu sắc kèm chữ rõ ràng) -->
+        <div id="scanResultAlert" class="alert d-none mb-0" role="alert"></div>
     </div>
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const qrImageInput = document.getElementById('qrImageInput');
+    const dropZone = document.getElementById('dropZone');
     const qrPreview = document.getElementById('qrPreview');
     const placeholderText = document.getElementById('placeholderText');
+    const fileInfoText = document.getElementById('fileInfoText');
+    const qrFileStatus = document.getElementById('qrFileStatus');
     const scanBtn = document.getElementById('scanBtn');
+    const clearQrBtn = document.getElementById('clearQrBtn');
     const scanResultAlert = document.getElementById('scanResultAlert');
 
-    qrImageInput.addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                qrPreview.src = e.target.result;
-                qrPreview.style.display = 'block';
-                placeholderText.style.display = 'none';
-            }
-            reader.readAsDataURL(file);
-            scanResultAlert.classList.add('d-none');
-        } else {
-            qrPreview.style.display = 'none';
-            placeholderText.style.display = 'block';
-        }
-    });
-
-    scanBtn.addEventListener('click', function() {
-        const file = qrImageInput.files[0];
-        if (!file) {
-            showAlert('Vui lòng chọn một file ảnh QR trước khi quét!', 'warning');
-            return;
-        }
-        scanBtn.disabled = true;
-        scanBtn.innerText = 'Đang xử lý...';
-        setTimeout(() => {
-            showAlert('Đọc mã QR thành công! Mã đơn hàng: <strong>DH-2026-9912</strong>', 'success');
-            scanBtn.disabled = false;
-            scanBtn.innerText = 'Quét Mã QR';
-        }, 1000);
-    });
-
-    function showAlert(message, type) {
-        scanResultAlert.className = `alert alert-${type}`;
-        scanResultAlert.innerHTML = message;
+    // Hàm hiển thị thông báo kèm trạng thái chữ rõ ràng
+    function showAlert(title, message, type) {
+        scanResultAlert.className = `alert alert-${type} mb-0`;
+        scanResultAlert.innerHTML = `<strong>${title}</strong><br>${message}`;
         scanResultAlert.classList.remove('d-none');
     }
+
+    // Hàm xử lý khi có file được chọn hoặc kéo thả
+    function handleImageFile(file) {
+        if (!file) return;
+
+        // Kiểm tra định dạng file
+        if (!file.type.startsWith('image/')) {
+            showAlert('⚠️ Lỗi định dạng tệp:', 'Vui lòng chỉ chọn tệp hình ảnh (PNG, JPG, WEBP).', 'danger');
+            resetUI();
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            qrPreview.src = e.target.result;
+            qrPreview.style.display = 'block';
+            placeholderText.style.display = 'none';
+
+            // Hiển thị thông tin tên và dung lượng ảnh
+            const sizeKB = (file.size / 1024).toFixed(1);
+            fileInfoText.textContent = `Tệp: ${file.name} (${sizeKB} KB)`;
+            fileInfoText.classList.remove('d-none');
+
+            qrFileStatus.textContent = 'Đã tải ảnh';
+            qrFileStatus.className = 'badge bg-warning text-dark';
+
+            scanBtn.disabled = false;
+            clearQrBtn.disabled = false;
+            scanResultAlert.classList.add('d-none');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Hàm đặt lại giao diện về ban đầu
+    function resetUI() {
+        qrImageInput.value = '';
+        qrPreview.src = '#';
+        qrPreview.style.display = 'none';
+        placeholderText.style.display = 'block';
+        fileInfoText.classList.add('d-none');
+        qrFileStatus.textContent = 'Chưa chọn tệp';
+        qrFileStatus.className = 'badge bg-light text-primary';
+        scanBtn.disabled = true;
+        clearQrBtn.disabled = true;
+        scanResultAlert.classList.add('d-none');
+    }
+
+    // Sự kiện chọn file qua input
+    qrImageInput.addEventListener('change', function (event) {
+        handleImageFile(event.target.files[0]);
+    });
+
+    // Hỗ trợ kéo thả ảnh (Drag & Drop)
+    dropZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropZone.classList.replace('bg-light', 'bg-info-subtle');
+    });
+    dropZone.addEventListener('dragleave', function () {
+        dropZone.classList.replace('bg-info-subtle', 'bg-light');
+    });
+    dropZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropZone.classList.replace('bg-info-subtle', 'bg-light');
+        if (e.dataTransfer.files.length > 0) {
+            qrImageInput.files = e.dataTransfer.files;
+            handleImageFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Nút xóa ảnh
+    clearQrBtn.addEventListener('click', resetUI);
+
+    // Sự kiện quét mã QR thật từ ảnh bằng thư viện jsQR
+    scanBtn.addEventListener('click', function () {
+        if (!qrPreview.src || qrPreview.style.display === 'none') {
+            showAlert('⚠️ Thiếu ảnh:', 'Vui lòng chọn một ảnh trước khi bấm quét!', 'warning');
+            return;
+        }
+
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '⏳ Đang giải mã...';
+
+        // Tạo canvas ẩn để lấy dữ liệu pixel của ảnh
+        const img = new Image();
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Gọi thư viện jsQR để quét mã
+            if (typeof jsQR === 'function') {
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert',
+                });
+
+                if (code && code.data) {
+                    qrFileStatus.textContent = 'Đọc thành công';
+                    qrFileStatus.className = 'badge bg-success';
+                    showAlert(
+                        '✅ Đọc mã QR thành công!',
+                        `Nội dung mã QR: <span class="badge bg-dark fs-6">${code.data}</span>`,
+                        'success'
+                    );
+                } else {
+                    qrFileStatus.textContent = 'Không thấy mã';
+                    qrFileStatus.className = 'badge bg-danger';
+                    showAlert(
+                        '❌ Không tìm thấy mã QR:',
+                        'Ảnh này không chứa mã QR hoặc mã quá mờ. Vui lòng thử ảnh khác.',
+                        'danger'
+                    );
+                }
+            } else {
+                showAlert('⚠️ Lỗi hệ thống:', 'Không tải được thư viện giải mã jsQR.', 'danger');
+            }
+
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = '🔍 Quét Mã QR';
+        };
+        img.src = qrPreview.src;
+    });
+});
 </script>
 <!-- === KẾT THÚC PHẦN 2 === -->
