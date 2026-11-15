@@ -1,9 +1,9 @@
-// === HỆ THỐNG LỊCH SỬ QUÉT OMNI-CHANNEL ENTERPRISE EDITION ===
+// === HỆ THỐNG LỊCH SỬ QUÉT AUTONOMOUS AI AGENT EDITION ===
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-parcel');     
     const statusSelect = document.getElementById('filter-status');    
     const sourceSelect = document.getElementById('filter-source');    
-    const shiftSelect = document.getElementById('filter-shift');        // Lọc theo ca làm việc mới
+    const shiftSelect = document.getElementById('filter-shift');        
     const startDateInput = document.getElementById('filter-start-date'); 
     const endDateInput = document.getElementById('filter-end-date');     
     const clearBtn = document.getElementById('clear-filters-btn');      
@@ -14,18 +14,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const historyTableRows = historyTableBody ? Array.from(historyTableBody.querySelectorAll('tr')) : []; 
     const resultCountEl = document.getElementById('result-count');      
 
-    // Thống kê nhanh & Tiến độ & Trạng thái Sync
+    // Thống kê & Tiến độ & Sync
     const statTotalEl = document.getElementById('stat-total');
     const statSuccessEl = document.getElementById('stat-success');
     const statPendingEl = document.getElementById('stat-pending');
     const progressBarEl = document.getElementById('success-progress-bar'); 
-    const lastSyncEl = document.getElementById('last-sync-time');       // Hiển thị thời gian auto-refresh
+    const lastSyncEl = document.getElementById('last-sync-time');       
 
     // Phân trang
     let currentPage = 1;
     const rowsPerPage = 15; 
 
-    const STORAGE_PREFIX = 'smart_logistics_omni_';
+    const STORAGE_PREFIX = 'smart_logistics_autonomous_';
 
     // 1. Khôi phục / Lưu trạng thái LocalStorage
     function restoreFilterState() {
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 3. Phân tích ngôn ngữ tự nhiên & Bộ lọc ca làm việc
+    // 3. Phân tích ngôn ngữ tự nhiên thông minh
     function parseNaturalLanguageQuery(query) {
         let cleanKeyword = query;
         let detectedStatus = '';
@@ -112,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // Xác định ca làm việc từ giờ của dòng dữ liệu (Sáng: 6-14h, Chiều: 14-22h, Đêm: 22-6h)
     function getShiftByTime(dateObj) {
         if (!dateObj || isNaN(dateObj.getTime())) return '';
         const hour = dateObj.getHours();
@@ -203,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => { row.style.opacity = '1'; row.style.transition = 'opacity 0.25s ease-in-out'; }, 30);
         }
 
-        // Cập nhật giao diện thống kê
+        // Cập nhật thống kê
         if (resultCountEl) {
             resultCountEl.innerText = `Hiển thị ${totalFiltered} / ${historyTableRows.length} kết quả (Trang ${currentPage}/${totalPages})`;
         }
@@ -220,16 +219,15 @@ document.addEventListener('DOMContentLoaded', function () {
         saveFilterState();
     }
 
-    // 5. Tự động cập nhật ngầm (Auto-Refresh Polling mỗi 30 giây)
+    // 5. Auto-Refresh ngầm mỗi 30 giây
     setInterval(() => {
         if (lastSyncEl) {
             const now = new Date();
             lastSyncEl.innerText = `Đã đồng bộ: ${now.toLocaleTimeString()}`;
         }
-        // Có thể thực hiện gọi làm mới nhẹ tại đây nếu cần
     }, 30000);
 
-    // 6. Phím tắt toàn diện (Ctrl+K tìm kiếm, Esc xóa lọc, Ctrl+← / Ctrl+→ chuyển trang)
+    // 6. Phím tắt toàn diện (Ctrl+K tìm kiếm, Esc xóa, Ctrl+← / Ctrl+→ chuyển trang)
     document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
@@ -276,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 9. Đăng ký sự kiện lắng nghe
+    // 9. Đăng ký sự kiện
     if (searchInput) searchInput.addEventListener('input', () => { currentPage = 1; applyFilters(); });
     if (statusSelect) statusSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
     if (sourceSelect) sourceSelect.addEventListener('change', () => { currentPage = 1; applyFilters(); });
@@ -298,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 10. Xuất file CSV thông minh
+    // 10. Xuất file CSV báo cáo thông minh
     if (exportFilteredBtn) {
         exportFilteredBtn.addEventListener('click', function () {
             let csvContent = "data:text/csv;charset=utf-8,ThoiGian,MaDonHang,TrangThai,NguonNhap\n";
@@ -322,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "smart_logistics_omni_history.csv");
+            link.setAttribute("download", "smart_logistics_autonomous_history.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -334,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
         printReportBtn.addEventListener('click', function () { window.print(); });
     }
 
-    // Khởi chạy hệ thống
+    // Khởi chạy
     restoreFilterState();
     applyFilters();
 });
