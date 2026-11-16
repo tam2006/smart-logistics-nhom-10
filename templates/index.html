@@ -206,16 +206,15 @@
           </article>
         </section>
 
-        <section class="card">
+        <section class="card qr-upload-card">
           <div class="section-heading">
             <span class="step">03</span>
             <h2>Đọc một ảnh QR</h2>
           </div>
 
-          <form id="qrForm">
-            <label for="qrFile">
-              Chọn một ảnh chứa một mã QR
-            </label>
+        <form id="qrForm" class="qr-form-group">
+            <label for="qrFile">Chọn một ảnh chứa một mã QR</label>
+
 
             <input
               id="qrFile"
@@ -234,17 +233,18 @@
             </button>
           </form>
 
-          <p class="muted">
-            Nhận ảnh PNG hoặc JPEG, tối đa 5 MB.
-            Đọc ảnh để xem nội dung trước khi xử lý.
+          <p class="muted qr-hint">
+            Nhận ảnh PNG hoặc JPEG, tối đa 5 MB. Đọc ảnh để xem nội dung trước khi xử lý.
           </p>
 
-          <canvas
-            id="qrPreview"
-            style="max-width:100%;max-height:300px;object-fit:contain"
-            hidden
-            aria-label="Ảnh đang được đọc QR"
-          ></canvas>
+          <div class="qr-preview-container">
+            <canvas
+              id="qrPreview"
+              style="max-width:100%;max-height:300px;object-fit:contain"
+              hidden
+              aria-label="Ảnh đang được đọc QR"
+            ></canvas>
+          </div>
 
           <p id="qrInfo" class="note" aria-live="polite">
             Chưa đọc ảnh. Thao tác đọc ảnh chưa ghi lịch sử.
