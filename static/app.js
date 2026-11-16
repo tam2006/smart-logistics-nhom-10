@@ -1,3 +1,4 @@
+
 "use strict";
 
 const $ = (id) => document.getElementById(id);
@@ -569,42 +570,17 @@ function resetMotion() {
     path.classList.remove("route-success", "route-error");
   });
 
-  $("conveyor").dataset.state = "idle";
+  const conveyor = $("conveyor");
+  conveyor.dataset.state = "idle";
+  delete conveyor.dataset.destination;
+  delete conveyor.dataset.phase;
+
+  const trace = $("routeTrace");
+  trace.setAttribute("opacity", "0");
+  trace.setAttribute("stroke-dashoffset", "1");
   $("motionState").textContent = "Sẵn sàng";
   $("motionInfo").textContent =
     "Chưa có kiện mới. Lịch sử chỉ ghi sau khi mô phỏng hoàn tất.";
-}
-
-function motionPoint(points, progress) {
-  const lengths = points.slice(1).map((point, index) =>
-    Math.hypot(
-      point[0] - points[index][0],
-      point[1] - points[index][1]
-    )
-  );
-
-  let distance =
-    Math.max(0, Math.min(1, progress)) *
-    lengths.reduce((sum, length) => sum + length, 0);
-
-  for (let index = 0; index < lengths.length; index += 1) {
-    if (
-      distance <= lengths[index] ||
-      index === lengths.length - 1
-    ) {
-      const ratio = lengths[index]
-        ? distance / lengths[index]
-        : 1;
-
-      return points[index].map((value, axis) =>
-        value + (points[index + 1][axis] - value) * ratio
-      );
-    }
-
-    distance -= lengths[index];
-  }
-
-  return points[points.length - 1];
 }
 
 async function animateResult(result) {
@@ -614,30 +590,22 @@ async function animateResult(result) {
     (result.status === "ready" || result.success === true) &&
     [1, 2, 3].includes(result.gate);
 
-  const routes = {
-    1: [[60, 160], [300, 160], [410, 65], [515, 65]],
-    2: [[60, 160], [300, 160], [515, 160]],
-    3: [[60, 160], [300, 160], [410, 255], [515, 255]],
-    check: [[60, 160], [300, 160], [300, 310], [430, 310]],
-  };
-
-  const points = routes[validGate ? result.gate : "check"];
   const route = $(validGate ? `route${result.gate}` : "routeCheck");
+  const routeLength = route.getTotalLength();
+  const trace = $("routeTrace");
+  const conveyor = $("conveyor");
 
-  route.classList.add(
-    validGate ? "route-success" : "route-error"
-  );
+  route.classList.add(validGate ? "route-success" : "route-error");
+  trace.setAttribute("d", route.getAttribute("d"));
+  trace.setAttribute("opacity", "1");
+  conveyor.dataset.destination = validGate ? String(result.gate) : "check";
 
   const parcel = $("motionParcel");
 
   $("motionCode").textContent =
     (result.code || "QR lỗi").slice(0, 8);
 
-  parcel.setAttribute("visibility", "visible");
-  parcel.setAttribute("transform", "translate(60 160)");
-
-  $("conveyor").dataset.state =
-    validGate ? "success" : "error";
+  conveyor.dataset.state = validGate ? "success" : "error";
 
   const preferred = Number($("motionSpeed").value);
 
@@ -662,9 +630,18 @@ async function animateResult(result) {
     `Đã xác định hướng đi. Đang chuyển đến ${destination}; ` +
     "chưa ghi hoàn tất.";
 
+  function drawFrame(progress) {
+    const { x, y } = route.getPointAtLength(routeLength * progress);
+    parcel.setAttribute("transform", `translate(${x} ${y})`);
+    trace.setAttribute("stroke-dashoffset", String(1 - progress));
+  }
+
+  drawFrame(0);
+  parcel.setAttribute("visibility", "visible");
   const start = performance.now();
 
   if (duration) {
+    conveyor.dataset.phase = "moving";
     await new Promise((resolve) => {
       let frame = null;
       let timer = null;
@@ -682,12 +659,10 @@ async function animateResult(result) {
 
       const tick = (now) => {
         const progress = Math.min(1, (now - start) / duration);
-        const [x, y] = motionPoint(points, progress);
-
-        parcel.setAttribute(
-          "transform",
-          `translate(${x} ${y})`
-        );
+        // Accelerate gently out of the feeder and brake at the destination.
+        const eased = 0.35 * progress ** 2 * (3 - 2 * progress)
+          + 0.65 * progress;
+        drawFrame(eased);
 
         if (progress >= 1) {
           finish();
@@ -703,9 +678,8 @@ async function animateResult(result) {
     });
   }
 
-  const [x, y] = points[points.length - 1];
-
-  parcel.setAttribute("transform", `translate(${x} ${y})`);
+  drawFrame(1);
+  conveyor.dataset.phase = "arrived";
 
   const elapsed = duration ? performance.now() - start : 0;
 
@@ -2565,3 +2539,7 @@ runTask(async () => {
 
   renderThroughput();
 })();
+
+
+
+

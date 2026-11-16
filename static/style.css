@@ -198,27 +198,6 @@ h1 {
   flex-direction: column;
 }
 
-/* Thống kê → băng chuyền → QR đơn → lô QR → lịch sử. */
-.main-column > .stats {
-  order: 0;
-}
-
-.main-column > .card:nth-child(4) {
-  order: 1;
-}
-
-.main-column > .card:nth-child(2) {
-  order: 2;
-}
-
-.main-column > .card:nth-child(3) {
-  order: 3;
-}
-
-.main-column > .card:nth-child(5) {
-  order: 4;
-}
-
 .card,
 .stat {
   border: 1px solid var(--border);
@@ -482,7 +461,7 @@ button:disabled {
 }
 
 /* Khu vực mô phỏng. */
-.main-column > .card:nth-child(4) {
+.motion-card {
   border-top: 3px solid #087f8c;
 }
 
@@ -733,7 +712,7 @@ progress::-moz-progress-bar {
   scrollbar-color: #b5c8d8 #f1f5f9;
 }
 
-.main-column > .card:nth-child(3) .table-wrap {
+.batch-card .table-wrap {
   max-height: 320px;
 }
 
@@ -863,13 +842,6 @@ footer {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-@media (min-width: 1200px) {
-  .workspace > aside {
-    position: sticky;
-    top: 20px;
-  }
 }
 
 @media (max-width: 1100px) {
@@ -1508,4 +1480,251 @@ footer {
   background-color: #f1f5f9;
   color: #334155;
   border-left: 4px solid #3b82f6;
+}
+
+/* Trạm vận hành: thanh đầu trang thấp, thao tác cạnh băng chuyền. */
+:root {
+  --navy: #172d40;
+  --teal: #08736d;
+  --border: #dbe5e9;
+  --muted: #53687a;
+  background: #edf3f5;
+}
+
+body { background: #edf3f5; }
+
+.header {
+  padding: 14px max(24px, calc((100% - 1344px) / 2));
+  background: #102838;
+  border-bottom: 2px solid #43b6a8;
+}
+.header::after { content: none; }
+.header-inner { flex-direction: row; align-items: center; }
+.brand { gap: 12px; }
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 11px;
+  background: #a9eade;
+  color: #12453e;
+  font-size: 17px;
+  box-shadow: none;
+}
+.eyebrow { margin: 0 0 3px; letter-spacing: 1.8px; }
+h1 { font-size: clamp(19px, 2.5vw, 25px); }
+.header-status-group { width: auto; }
+.connection { padding: 6px 10px; }
+
+.container { max-width: 1392px; padding: 16px 24px 0; }
+.station-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.station-nav a {
+  padding: 7px 12px;
+  border: 1px solid #d6e4e8;
+  border-radius: 7px;
+  background: #fff;
+  color: #294c5d;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 650;
+}
+.station-nav a:hover { background: #e2f4ee; color: #075d53; }
+.station-nav a:focus-visible { outline: 2px solid #08736d; outline-offset: 2px; }
+.workspace section[id] { scroll-margin-top: 14px; }
+
+.notice { margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; }
+.workspace { grid-template-columns: 304px minmax(0, 1fr); gap: 16px; }
+.control-sidebar, .main-column { display: flex; flex-direction: column; gap: 12px; }
+
+.card, .stat, .qr-upload-card {
+  margin-bottom: 0;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  box-shadow: 0 2px 7px #14394f08;
+}
+.workspace > aside > .card:first-child { border-top: 1px solid var(--border); }
+.card { padding: 16px; }
+.section-heading { margin-bottom: 12px; }
+h2 { font-size: 17px; }
+.control-sidebar h2 { font-size: 16px; }
+
+label { margin-bottom: 5px; }
+input, select, .button { min-height: 38px; border-radius: 8px; }
+input, select { margin-bottom: 8px; padding: 7px 9px; }
+.button { padding: 7px 11px; }
+.primary { background: #08736d; box-shadow: none; }
+.primary:hover:not(:disabled) { background: #065d58; box-shadow: none; transform: none; }
+input[type="file"] { padding: 5px; }
+input[type="file"]::file-selector-button {
+  padding: 5px 7px;
+  margin-right: 6px;
+  background: #e0f2ed;
+  color: #075d53;
+}
+
+.input-action-stack { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.input-action-stack input { min-width: 0; margin-bottom: 0; }
+.session-select-group { margin-top: 12px; }
+.session-info-box { margin: 0 0 9px; padding: 6px 9px; background: #f5f9fa; }
+.session-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.manual-hint { margin-top: 9px; padding: 6px 8px; }
+.qr-form-group { gap: 6px; margin-bottom: 6px; }
+.qr-form-group input { margin-bottom: 0; }
+.qr-form-group label { margin-bottom: 0; }
+.qr-hint { margin: 6px 0; font-size: 12px; }
+.qr-preview-container { margin: 0; }
+#qrPreview { margin: 8px auto; }
+#qrInfo.note { margin: 6px 0 8px; padding: 6px 8px; border-left-width: 2px; }
+#processQrButton { width: 100%; }
+
+.stats { gap: 10px; margin: 0; }
+.stat { padding: 12px 14px; }
+.stat::after { content: none; }
+.stat strong { margin: 2px 0; font-size: 29px; }
+.success-stat strong { color: #057451; }
+.error-stat strong { color: #9c4721; }
+.stat small { color: var(--muted); }
+
+.motion-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+.panel-kicker {
+  margin: 0 0 2px;
+  color: #08736d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.motion-toolbar { margin: 0; gap: 7px; }
+.motion-toolbar > div { flex: 1 1 auto; }
+.motion-toolbar .count-badge { padding: 4px 8px; }
+.conveyor {
+  border: 1px solid #cbdde3;
+  border-radius: 10px;
+  background-color: #f4f9fa;
+  background-size: 20px 20px, 20px 20px, auto;
+}
+.conveyor-scene { min-width: 0; max-height: clamp(290px, 38vh, 364px); }
+.belt-base { stroke: #c4d4df; }
+.gates { gap: 8px; margin-top: 8px; }
+.gate { padding: 9px 8px; text-align: left; }
+.gate-number { display: none; }
+.gate h3 { margin: 0 0 2px; font-size: 14px; }
+.gate p { min-height: 0; margin-bottom: 4px; }
+.gate-state { padding: 3px 6px; }
+.latest-result { padding: 9px 12px; margin-top: 8px; }
+.history-filters fieldset, .batch-status-box { border-radius: 9px; }
+th, td { padding: 9px 10px; }
+
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 260px minmax(0, 1fr); gap: 12px; }
+}
+
+@media (max-width: 740px) {
+  .header { padding: 11px 14px; }
+  .header-inner { flex-wrap: wrap; gap: 7px; }
+  .container { padding: 12px 12px 0; }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .workspace > aside { display: flex; gap: 10px; }
+  .card { padding: 12px; }
+  .stat { padding: 8px; }
+  .stat strong { font-size: 23px; }
+  .gate { padding: 6px; }
+}
+
+@media (max-width: 380px) {
+  .gates { grid-template-columns: 1fr; }
+}
+
+/* Sơ đồ kho với ba cửa xuất và các điểm rẽ tách riêng. */
+.conveyor { background: #f1f6f9; }
+.conveyor-scene { width: 100%; min-width: 640px; max-height: none; }
+.yard-separator { stroke: #b8cbd5; stroke-dasharray: 4 5; }
+.yard-kicker { fill: #486477; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+.yard-title { fill: #18384b; font-size: 16px; font-weight: 750; }
+.yard-hint, .scanner-card .yard-hint { fill: #4f6a7e; font-size: 11px; font-weight: 500; }
+.yard-label { fill: #47647a; font-size: 12px; font-weight: 650; }
+
+.trunk-shell, .dock-spur { stroke: #a4bcc9; stroke-width: 42; }
+.trunk-core, .dock-spur-core { stroke: #35566b; stroke-width: 34; }
+.warehouse-rollers {
+  stroke: #7b99aa;
+  stroke-width: 25;
+  stroke-linecap: butt;
+  stroke-dasharray: 2 10;
+}
+.conveyor[data-phase="moving"] .warehouse-rollers {
+  animation: yard-run .24s linear infinite;
+}
+.conveyor[data-phase="moving"] .spur-rollers { animation-direction: reverse; }
+@keyframes yard-run { to { stroke-dashoffset: -12; } }
+
+.scanner-card rect { fill: #fff; stroke: #b6cbd5; }
+.scanner-card path {
+  fill: none;
+  stroke: #08736d;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.scanner-card text { fill: #23495b; font-size: 12px; font-weight: 700; }
+
+.scene-outlet .dock-panel { fill: #fff; stroke: #b2c8d3; stroke-width: 1.5; }
+.scene-outlet text { fill: #23495b; font-size: 13px; }
+.scene-outlet .scene-city { fill: #4f6a7e; font-size: 13px; }
+.scene-outlet .dock-caption { fill: #476477; font-size: 9px; letter-spacing: .6px; }
+.outlet-light { fill: #839eac; }
+.truck-cargo { fill: #116d77; }
+.truck-cab { fill: #348d96; }
+.truck-glass { fill: #ebfbf9; }
+.truck-detail { fill: none; stroke: #9ce0da; stroke-width: 1.2; stroke-linecap: round; }
+.truck-wheel { fill: #244255; stroke: #f8fdff; stroke-width: 1; }
+
+.conveyor[data-phase="arrived"][data-destination="1"] .dock-one .dock-panel,
+.conveyor[data-phase="arrived"][data-destination="2"] .dock-two .dock-panel,
+.conveyor[data-phase="arrived"][data-destination="3"] .dock-three .dock-panel {
+  fill: #e5fbf3;
+  stroke: #0d855f;
+  stroke-width: 2;
+}
+.conveyor[data-phase="arrived"][data-destination="1"] .dock-one .outlet-light,
+.conveyor[data-phase="arrived"][data-destination="2"] .dock-two .outlet-light,
+.conveyor[data-phase="arrived"][data-destination="3"] .dock-three .outlet-light { fill: #0d855f; }
+.inspection-outlet text { fill: #805021; font-size: 11px; }
+.inspection-outlet .scene-city { font-size: 10px; }
+.conveyor[data-phase="arrived"][data-destination="check"] .inspection-outlet .dock-panel {
+  fill: #fff1d7;
+  stroke: #ab690e;
+  stroke-width: 2;
+}
+.conveyor[data-phase="arrived"][data-destination="check"] .inspection-outlet .outlet-light {
+  fill: #ab690e;
+}
+
+/* Đường sáng nằm trên băng chuyền và tăng dần theo kiện. */
+.conveyor .route-lines path { stroke: transparent; filter: none; }
+.route-trace { stroke: #56e6bb; stroke-width: 4; pointer-events: none; }
+.conveyor[data-state="error"] .route-trace { stroke: #ffc46f; }
+#motionParcel rect {
+  fill: #ffdb97;
+  stroke: #86561f;
+  stroke-width: 1.6;
+  filter: drop-shadow(0 3px 3px #10283859);
+}
+#motionParcel text { fill: #492d12; font-size: 10px; font-weight: 800; }
+.parcel-tape { fill: #fff1cf; stroke: #a57641; stroke-width: .8; }
+.parcel-detail { fill: none; stroke: #9b6c38; stroke-width: 1.3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .conveyor[data-phase="moving"] .warehouse-rollers { animation: none; }
 }
