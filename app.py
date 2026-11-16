@@ -1,11 +1,16 @@
 import re
 import sqlite3
+import sys
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 
 from session_routes import session_api
 from history_routes import history_api
+from khoi_tao_project import (
+    LoiKhoiTao,
+    dam_bao_san_sang_cho_web,
+)
 
 
 BASE = Path(__file__).resolve().parent
@@ -83,7 +88,10 @@ def kiem_tra_he_thong():
 def danh_sach_kien():
     subset = request.args.get("subset")
 
-    if subset is not None and subset not in ("demo", "final_test"):
+    if subset is not None and subset not in (
+        "demo",
+        "final_test",
+    ):
         return jsonify(
             status="invalid_input",
             message="subset chỉ nhận demo hoặc final_test.",
@@ -92,7 +100,10 @@ def danh_sach_kien():
     conn = ket_noi_db()
 
     try:
-        sql = "SELECT code, destination, state, subset FROM parcels"
+        sql = (
+            "SELECT code, destination, state, subset "
+            "FROM parcels"
+        )
         params = []
 
         if subset is not None:
@@ -189,6 +200,16 @@ def tra_cuu_kien(code):
 
 
 if __name__ == "__main__":
+    try:
+        dam_bao_san_sang_cho_web()
+    except LoiKhoiTao as error:
+        print(
+            f"[LỖI KHỞI TẠO] {error}",
+            file=sys.stderr,
+            flush=True,
+        )
+        raise SystemExit(1)
+
     app.run(
         host="127.0.0.1",
         port=5000,

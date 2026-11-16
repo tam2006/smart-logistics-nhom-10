@@ -6,18 +6,32 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
+from nhap_so_do import doc_lai, gan, html_so_do
 from xuat_va_doi_chieu import doi_chieu, ghi_csv, thong_ke, ti_le
 
 
 BASE = Path(__file__).resolve().parent
 MANUAL_TYPE = "manual_code_lookup_to_gate_click"
-TIME_FIELDS = ("read_ms", "prepare_ms", "pipeline_ms", "animation_ms")
+TIME_FIELDS = (
+    "read_ms",
+    "prepare_ms",
+    "pipeline_ms",
+    "animation_ms",
+)
 
 TABLE_FIELDS = [
-    "phuong_phap", "so_kien", "da_thu", "dung_lan_dau",
-    "ty_le_dung_tren_da_thu_pct", "ty_le_dung_tren_30_pct",
-    "so_mau_thoi_gian", "pham_vi_do_thoi_gian",
-    "trung_binh_ms", "trung_vi_ms", "p95_ms", "lon_nhat_ms",
+    "phuong_phap",
+    "so_kien",
+    "da_thu",
+    "dung_lan_dau",
+    "ty_le_dung_tren_da_thu_pct",
+    "ty_le_dung_tren_30_pct",
+    "so_mau_thoi_gian",
+    "pham_vi_do_thoi_gian",
+    "trung_binh_ms",
+    "trung_vi_ms",
+    "p95_ms",
+    "lon_nhat_ms",
 ]
 
 
@@ -26,29 +40,44 @@ def doc_json(path):
         data = json.load(file)
 
     if not isinstance(data, dict):
-        raise ValueError(f"JSON không phải đối tượng: {path}")
+        raise ValueError(
+            f"JSON không phải đối tượng: {path}"
+        )
 
     return data
 
 
 def doc_csv(path):
-    with path.open(encoding="utf-8-sig", newline="") as file:
+    with path.open(
+        encoding="utf-8-sig",
+        newline="",
+    ) as file:
         reader = csv.DictReader(file)
 
         if not reader.fieldnames:
-            raise ValueError(f"CSV thiếu tiêu đề: {path}")
+            raise ValueError(
+                f"CSV thiếu tiêu đề: {path}"
+            )
 
         return list(reader)
 
 
 def so(value, label):
-    if isinstance(value, bool) or value is None or value == "":
-        raise ValueError(f"Thiếu hoặc sai số: {label}")
+    if (
+        isinstance(value, bool)
+        or value is None
+        or value == ""
+    ):
+        raise ValueError(
+            f"Thiếu hoặc sai số: {label}"
+        )
 
     number = float(value)
 
     if not math.isfinite(number) or number < 0:
-        raise ValueError(f"Số âm hoặc không hữu hạn: {label}")
+        raise ValueError(
+            f"Số âm hoặc không hữu hạn: {label}"
+        )
 
     return number
 
@@ -57,7 +86,9 @@ def nguyen(value, label):
     number = so(value, label)
 
     if number != int(number):
-        raise ValueError(f"Cần số nguyên: {label}")
+        raise ValueError(
+            f"Cần số nguyên: {label}"
+        )
 
     return int(number)
 
@@ -65,22 +96,34 @@ def nguyen(value, label):
 def khop(actual, expected, label, tolerance=0.011):
     if actual is None or expected is None:
         if actual is not expected:
-            raise ValueError(f"Số liệu không khớp: {label}")
-    elif abs(so(actual, label) - so(expected, label)) > tolerance:
-        raise ValueError(f"Số liệu không khớp: {label}")
+            raise ValueError(
+                f"Số liệu không khớp: {label}"
+            )
+
+    elif abs(
+        so(actual, label) - so(expected, label)
+    ) > tolerance:
+        raise ValueError(
+            f"Số liệu không khớp: {label}"
+        )
 
 
 def bo_ma(subset):
     start = 1 if subset == "demo" else 31
 
     return {
-        f"KH{n:03d}"
-        for n in range(start, start + 30)
+        f"KH{number:03d}"
+        for number in range(start, start + 30)
     }
 
 
 def tim_bao_cao(folder, subset, manual=False):
-    name = "manual_summary.json" if manual else "summary.json"
+    name = (
+        "manual_summary.json"
+        if manual
+        else "summary.json"
+    )
+
     candidates = []
 
     for path in sorted(folder.glob(f"*/{name}")):
@@ -90,31 +133,59 @@ def tim_bao_cao(folder, subset, manual=False):
             if data.get("subset") != subset:
                 continue
 
-            if manual and data.get("measurement") != MANUAL_TYPE:
+            if (
+                manual
+                and data.get("measurement") != MANUAL_TYPE
+            ):
                 continue
 
-            when = datetime.fromisoformat(data["exported_at_utc"])
+            when = datetime.fromisoformat(
+                data["exported_at_utc"]
+            )
 
             if when.tzinfo is None:
-                raise ValueError("Thời điểm xuất thiếu múi giờ")
+                raise ValueError(
+                    "Thời điểm xuất thiếu múi giờ"
+                )
 
-            key = str(path) if manual else data["session"]["id"]
-            candidates.append((key, when, path, data))
+            key = (
+                str(path)
+                if manual
+                else data["session"]["id"]
+            )
 
-        except (OSError, ValueError, KeyError, TypeError) as error:
-            print(f"Bỏ qua {path.parent.name}: {error}")
+            candidates.append(
+                (key, when, path, data)
+            )
 
-    # Một phiên có thể được xuất nhiều lần:
-    # chỉ giữ bản xuất mới nhất của từng phiên.
+        except (
+            OSError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as error:
+            print(
+                f"Bỏ qua {path.parent.name}: {error}"
+            )
+
+    # Một phiên có thể được xuất nhiều lần.
+    # Giữ bản xuất mới nhất của từng phiên.
     latest = {}
 
     for key, when, path, data in candidates:
-        if key not in latest or when > latest[key][0]:
-            latest[key] = (when, path, data)
+        if (
+            key not in latest
+            or when > latest[key][0]
+        ):
+            latest[key] = (
+                when,
+                path,
+                data,
+            )
 
     return [
-        (p, d)
-        for _, p, d in sorted(
+        (path, data)
+        for _, path, data in sorted(
             latest.values(),
             key=lambda item: item[0],
             reverse=True,
@@ -126,48 +197,81 @@ def chon_bao_cao(candidates, label, manual=False):
     if not candidates:
         raise ValueError(
             f"Chưa có báo cáo {label}. "
-            "Cần chạy và xuất đúng bộ trước khi tổng hợp chính thức."
+            "Cần chạy và xuất đúng bộ trước khi "
+            "tổng hợp chính thức."
         )
 
     print(f"\nCHỌN {label.upper()}")
 
-    for n, (path, data) in enumerate(candidates, 1):
+    for number, (path, data) in enumerate(
+        candidates,
+        start=1,
+    ):
         if manual:
             text = (
                 f"{data.get('participant', '?')} | "
-                f"đã trả lời {data.get('answered', '?')}/30 | "
-                f"ngắt {data.get('interrupted_presentations', '?')} lần"
-            )
-        else:
-            session = data["session"]
-            text = (
-                f"{session['name']} | {session['status']} | "
-                f"đã thử {data.get('expected_parcels_attempted', '?')}/30"
+                "đã trả lời "
+                f"{data.get('answered', '?')}/30 | "
+                "ngắt "
+                f"{data.get('interrupted_presentations', '?')} "
+                "lần"
             )
 
-        print(f"{n}. {text}\n   {path.parent.name}")
+        else:
+            session = data["session"]
+
+            text = (
+                f"{session['name']} | "
+                f"{session['status']} | "
+                "đã thử "
+                f"{data.get('expected_parcels_attempted', '?')}"
+                "/30"
+            )
+
+        print(
+            f"{number}. {text}\n"
+            f"   {path.parent.name}"
+        )
 
     if len(candidates) == 1:
         print("Dùng mục 1.")
         return candidates[0]
 
-    answer = input("Nhập số thứ tự: ").strip()
+    answer = input(
+        "Nhập số thứ tự: "
+    ).strip()
 
-    if not answer.isascii() or not answer.isdigit():
-        raise ValueError("Cần nhập số thứ tự trong danh sách.")
-
-    n = int(answer)
-
-    if not 1 <= n <= len(candidates):
-        raise ValueError("Số thứ tự nằm ngoài danh sách.")
-
-    return candidates[n - 1]
-
-
-def kiem_tra_tu_dong(path, data, subset, preview=False):
-    if data.get("schema_version") != 2 or "qr_metrics" not in data:
+    if (
+        not answer.isascii()
+        or not answer.isdigit()
+    ):
         raise ValueError(
-            "Báo cáo QR cũ: chạy lại xuat_va_doi_chieu.py."
+            "Cần nhập số thứ tự trong danh sách."
+        )
+
+    number = int(answer)
+
+    if not 1 <= number <= len(candidates):
+        raise ValueError(
+            "Số thứ tự nằm ngoài danh sách."
+        )
+
+    return candidates[number - 1]
+
+
+def kiem_tra_tu_dong(
+    path,
+    data,
+    subset,
+    preview=False,
+):
+    if (
+        data.get("schema_version") != 2
+        or "qr_metrics" not in data
+    ):
+        raise ValueError(
+            "Báo cáo QR cũ: chạy lại "
+            "xuat_va_doi_chieu.py."
         )
 
     if (
@@ -175,14 +279,20 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
         or data.get("expected_parcels") != 30
     ):
         raise ValueError(
-            "Báo cáo QR sai bộ hoặc không có 30 đáp án."
+            "Báo cáo QR sai bộ hoặc không có "
+            "30 đáp án."
         )
 
-    comparison = doc_csv(path.parent / "comparison.csv")
+    comparison = doc_csv(
+        path.parent / "comparison.csv"
+    )
 
     if (
         len(comparison) != 30
-        or {r["code"] for r in comparison} != bo_ma(subset)
+        or {
+            row["code"]
+            for row in comparison
+        } != bo_ma(subset)
     ):
         raise ValueError(
             "comparison.csv thiếu, lặp hoặc sai mã."
@@ -191,14 +301,18 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
     expected = {}
 
     for row in comparison:
-        gate = nguyen(row["expected_gate"], "expected_gate")
+        gate = nguyen(
+            row["expected_gate"],
+            "expected_gate",
+        )
 
         if (
             gate not in (1, 2, 3)
             or row["expected_status"] != "success"
         ):
             raise ValueError(
-                "Đáp án trong comparison.csv không hợp lệ."
+                "Đáp án trong comparison.csv "
+                "không hợp lệ."
             )
 
         expected[row["code"]] = {
@@ -206,8 +320,12 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
             "expected_status": "success",
         }
 
-    history = doc_csv(path.parent / "history.csv")
-    ids, requests = set(), set()
+    history = doc_csv(
+        path.parent / "history.csv"
+    )
+
+    ids = set()
+    requests = set()
 
     for row in history:
         for field in ("id", "gate", "success"):
@@ -217,9 +335,13 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
                 else None
             )
 
-        if row["id"] is None or row["success"] not in (0, 1):
+        if (
+            row["id"] is None
+            or row["success"] not in (0, 1)
+        ):
             raise ValueError(
-                "ID hoặc success trong lịch sử không hợp lệ."
+                "ID hoặc success trong lịch sử "
+                "không hợp lệ."
             )
 
         if row["gate"] not in (None, 1, 2, 3):
@@ -229,12 +351,20 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
 
         rid = row["request_id"]
 
-        if not rid or rid in requests or row["id"] in ids:
+        if (
+            not rid
+            or rid in requests
+            or row["id"] in ids
+        ):
             raise ValueError(
-                "Lịch sử thiếu hoặc lặp ID/request_id."
+                "Lịch sử thiếu hoặc lặp "
+                "ID/request_id."
             )
 
-        if row["session_id"] != data["session"]["id"]:
+        if (
+            row["session_id"]
+            != data["session"]["id"]
+        ):
             raise ValueError(
                 "Lịch sử không thuộc phiên đã chọn."
             )
@@ -243,26 +373,37 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
         requests.add(rid)
 
         row["decision_ms"] = (
-            so(row["decision_ms"], "decision_ms")
+            so(
+                row["decision_ms"],
+                "decision_ms",
+            )
             if row["decision_ms"] != ""
             else None
         )
 
         row["measurement"] = None
 
-    measured = doc_csv(path.parent / "qr_measurements.csv")
+    measured = doc_csv(
+        path.parent / "qr_measurements.csv"
+    )
+
     by_request = {
-        r["request_id"]: r
-        for r in history
+        row["request_id"]: row
+        for row in history
     }
+
     seen = set()
 
     for item in measured:
         rid = item["request_id"]
 
-        if rid not in by_request or rid in seen:
+        if (
+            rid not in by_request
+            or rid in seen
+        ):
             raise ValueError(
-                "Số đo QR có request_id lặp hoặc ngoài lịch sử."
+                "Số đo QR có request_id lặp "
+                "hoặc ngoài lịch sử."
             )
 
         seen.add(rid)
@@ -271,7 +412,8 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
         if (
             item["code"] != row["code"]
             or item["source"] != row["source"]
-            or item["session_id"] != row["session_id"]
+            or item["session_id"]
+            != row["session_id"]
         ):
             raise ValueError(
                 "Số đo QR không khớp lịch sử."
@@ -284,31 +426,43 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
 
         if present not in (0, 1):
             raise ValueError(
-                "measurement_present phải là 0 hoặc 1."
+                "measurement_present phải là "
+                "0 hoặc 1."
             )
 
         if present:
-            m = dict(item)
+            measurement = dict(item)
 
-            for field in ("measurement_version", "valid"):
-                m[field] = nguyen(item[field], field)
+            for field in (
+                "measurement_version",
+                "valid",
+            ):
+                measurement[field] = nguyen(
+                    item[field],
+                    field,
+                )
 
             for field in TIME_FIELDS:
-                m[field] = (
+                measurement[field] = (
                     so(item[field], field)
                     if item[field] != ""
                     else None
                 )
 
-            m["invalid_reason"] = item["invalid_reason"] or None
-            row["measurement"] = m
+            measurement["invalid_reason"] = (
+                item["invalid_reason"] or None
+            )
+
+            row["measurement"] = measurement
 
     if any(
-        r["source"] == "qr" and r["request_id"] not in seen
-        for r in history
+        row["source"] == "qr"
+        and row["request_id"] not in seen
+        for row in history
     ):
         raise ValueError(
-            "qr_measurements.csv thiếu dòng cho lượt QR."
+            "qr_measurements.csv thiếu dòng "
+            "cho lượt QR."
         )
 
     calculated, checked = doi_chieu(
@@ -319,8 +473,8 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
     )
 
     check_by_code = {
-        r["code"]: r
-        for r in calculated
+        row["code"]: row
+        for row in calculated
     }
 
     for row in comparison:
@@ -331,9 +485,17 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
             "first_correct",
             "successful_attempts",
         ):
-            khop(row[field], actual[field], field, 0)
+            khop(
+                row[field],
+                actual[field],
+                field,
+                0,
+            )
 
-        if row["comparison"] != actual["comparison"]:
+        if (
+            row["comparison"]
+            != actual["comparison"]
+        ):
             raise ValueError(
                 "comparison.csv không khớp lịch sử."
             )
@@ -344,9 +506,14 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
         "first_attempt_correct_parcels",
         "correctly_completed_parcels",
     ):
-        khop(data[field], checked[field], field, 0)
+        khop(
+            data[field],
+            checked[field],
+            field,
+            0,
+        )
 
-    q = checked["qr_metrics"]
+    qr_metrics = checked["qr_metrics"]
     original = data["qr_metrics"]
 
     for field in (
@@ -355,38 +522,92 @@ def kiem_tra_tu_dong(path, data, subset, preview=False):
         "invalid_measurements",
         "missing_measurements",
     ):
-        khop(original[field], q[field], field, 0)
+        khop(
+            original[field],
+            qr_metrics[field],
+            field,
+            0,
+        )
 
     for field in TIME_FIELDS:
-        for metric, value in q["all_valid_attempts"][field].items():
+        stats = qr_metrics[
+            "all_valid_attempts"
+        ][field]
+
+        for metric, value in stats.items():
             khop(
-                original["all_valid_attempts"][field][metric],
+                original[
+                    "all_valid_attempts"
+                ][field][metric],
                 value,
                 metric,
             )
 
     if not preview:
-        if data["session"]["status"] != "closed":
+        if (
+            data["session"]["status"]
+            != "closed"
+        ):
             raise ValueError(
-                "Cần đóng phiên rồi xuất lại báo cáo QR."
+                "Cần đóng phiên rồi xuất lại "
+                "báo cáo QR."
             )
 
         if (
             len(history) != 30
-            or len({r["code"] for r in history}) != 30
-            or {r["code"] for r in history} != bo_ma(subset)
+            or len({
+                row["code"]
+                for row in history
+            }) != 30
+            or {
+                row["code"]
+                for row in history
+            } != bo_ma(subset)
         ):
             raise ValueError(
-                "Lần đánh giá cần đúng 30 mã, mỗi mã một lượt."
+                "Lần đánh giá cần đúng 30 mã, "
+                "mỗi mã một lượt."
             )
 
         if (
-            q["qr_history_attempts"] != 30
-            or q["valid_measurements"] != 30
+            qr_metrics["qr_history_attempts"] != 30
+            or qr_metrics["valid_measurements"] != 30
         ):
             raise ValueError(
-                "Cần 30 lượt nguồn QR có số đo hợp lệ."
+                "Cần 30 lượt nguồn QR "
+                "có số đo hợp lệ."
             )
+
+    # Đọc lại số đo từ các tệp nguồn đã lưu kèm.
+    # Chế độ xem thử cho phép bộ chưa đủ 30 kiện.
+    metrics = doc_lai(
+        path.parent,
+        data["session"],
+        history,
+        expected,
+        formal=not preview,
+    )
+
+    gan(checked, metrics)
+
+    if (
+        "independent_metrics" in data
+        and data["independent_metrics"] != metrics
+    ):
+        raise ValueError(
+            "Số đo bổ sung trong summary.json "
+            "không khớp tệp nguồn."
+        )
+
+    for field in (
+        "qr_decode_accuracy_pct",
+        "simulated_throughput_parcels_per_minute",
+    ):
+        khop(
+            data.get(field),
+            checked[field],
+            field,
+        )
 
     return checked, calculated
 
@@ -397,7 +618,8 @@ def kiem_tra_thu_cong(path, data, reference):
         or data.get("schema_version") != 2
     ):
         raise ValueError(
-            "Bài thủ công cần đo đọc mã -> tra bảng -> chọn cửa, bản 2."
+            "Bài thủ công cần đo đọc mã -> "
+            "tra bảng -> chọn cửa, bản 2."
         )
 
     if (
@@ -405,7 +627,8 @@ def kiem_tra_thu_cong(path, data, reference):
         or data.get("expected_parcels") != 30
     ):
         raise ValueError(
-            "Bài thủ công cần bộ final_test 30 kiện."
+            "Bài thủ công cần bộ final_test "
+            "30 kiện."
         )
 
     if nguyen(
@@ -413,7 +636,8 @@ def kiem_tra_thu_cong(path, data, reference):
         "interrupted_presentations",
     ) != 0:
         raise ValueError(
-            "Bài thủ công bị ngắt; dùng bài hoàn tất không bị ngắt."
+            "Bài thủ công bị ngắt; dùng bài "
+            "hoàn tất không bị ngắt."
         )
 
     if type(data.get("shuffle_seed")) is not int:
@@ -421,55 +645,108 @@ def kiem_tra_thu_cong(path, data, reference):
             "Bài thủ công thiếu seed xáo trộn."
         )
 
-    rows = doc_csv(path.parent / "manual_trials.csv")
+    rows = doc_csv(
+        path.parent / "manual_trials.csv"
+    )
 
     expected = {
-        r["code"]: r["expected_gate"]
-        for r in reference
+        row["code"]: row["expected_gate"]
+        for row in reference
     }
 
-    seen, times, correct = set(), [], 0
+    seen = set()
+    times = []
+    correct = 0
 
     for row in rows:
         code = row["code"]
 
-        if code not in expected or code in seen:
+        if (
+            code not in expected
+            or code in seen
+        ):
             raise ValueError(
-                "Bài thủ công lặp mã hoặc sai bộ final_test."
+                "Bài thủ công lặp mã "
+                "hoặc sai bộ final_test."
             )
 
         seen.add(code)
 
-        gate = nguyen(row["expected_gate"], "expected_gate")
-        chosen = nguyen(row["chosen_gate"], "chosen_gate")
-        answer = nguyen(row["correct"], "correct")
+        gate = nguyen(
+            row["expected_gate"],
+            "expected_gate",
+        )
 
-        if chosen not in (1, 2, 3) or gate != expected[code]:
+        chosen = nguyen(
+            row["chosen_gate"],
+            "chosen_gate",
+        )
+
+        answer = nguyen(
+            row["correct"],
+            "correct",
+        )
+
+        if (
+            chosen not in (1, 2, 3)
+            or gate != expected[code]
+        ):
             raise ValueError(
-                f"Lựa chọn hoặc đáp án sai định dạng: {code}"
+                "Lựa chọn hoặc đáp án sai "
+                f"định dạng: {code}"
             )
 
         if answer != int(chosen == gate):
             raise ValueError(
-                f"Cột correct không khớp lựa chọn: {code}"
+                "Cột correct không khớp "
+                f"lựa chọn: {code}"
             )
 
         correct += answer
-        times.append(so(row["manual_ms"], "manual_ms"))
 
-    if len(rows) != 30 or seen != set(expected):
+        times.append(
+            so(
+                row["manual_ms"],
+                "manual_ms",
+            )
+        )
+
+    if (
+        len(rows) != 30
+        or seen != set(expected)
+    ):
         raise ValueError(
             "Bài thủ công chưa hoàn tất 30 kiện."
         )
 
-    if [r["code"] for r in rows] != data.get("trial_order"):
+    if [
+        row["code"]
+        for row in rows
+    ] != data.get("trial_order"):
         raise ValueError(
-            "Thứ tự bài thủ công không khớp trial_order."
+            "Thứ tự bài thủ công "
+            "không khớp trial_order."
         )
 
-    khop(data["answered"], len(rows), "answered", 0)
-    khop(data["correct"], correct, "correct", 0)
-    khop(data["manual_ms_sum"], sum(times), "manual_ms_sum")
+    khop(
+        data["answered"],
+        len(rows),
+        "answered",
+        0,
+    )
+
+    khop(
+        data["correct"],
+        correct,
+        "correct",
+        0,
+    )
+
+    khop(
+        data["manual_ms_sum"],
+        sum(times),
+        "manual_ms_sum",
+    )
 
     stats = thong_ke(times)
 
@@ -478,7 +755,11 @@ def kiem_tra_thu_cong(path, data, reference):
         ("manual_ms_median", "median"),
         ("manual_ms_max", "max"),
     ):
-        khop(data[field], stats[metric], field)
+        khop(
+            data[field],
+            stats[metric],
+            field,
+        )
 
     khop(
         data["correct_pct_of_full_set"],
@@ -489,27 +770,38 @@ def kiem_tra_thu_cong(path, data, reference):
     return rows, stats
 
 
-def dong_bang(label, attempted, correct, stats, scope):
-    return dict(zip(TABLE_FIELDS, [
-        label,
-        30,
-        attempted,
-        correct,
-        ti_le(correct, attempted),
-        ti_le(correct, 30),
-        stats["samples"],
-        scope,
-        stats["mean"],
-        stats["median"],
-        stats["p95"],
-        stats["max"],
-    ]))
+def dong_bang(
+    label,
+    attempted,
+    correct,
+    stats,
+    scope,
+):
+    return dict(zip(
+        TABLE_FIELDS,
+        [
+            label,
+            30,
+            attempted,
+            correct,
+            ti_le(correct, attempted),
+            ti_le(correct, 30),
+            stats["samples"],
+            scope,
+            stats["mean"],
+            stats["median"],
+            stats["p95"],
+            stats["max"],
+        ],
+    ))
 
 
 def tao_html(table, wrong, summary):
     def esc(value):
         return html.escape(
-            "Chưa có" if value is None else str(value)
+            "Chưa có"
+            if value is None
+            else str(value)
         )
 
     labels = [
@@ -528,8 +820,8 @@ def tao_html(table, wrong, summary):
     ]
 
     head = "".join(
-        f"<th>{esc(x)}</th>"
-        for x in labels
+        f"<th>{esc(label)}</th>"
+        for label in labels
     )
 
     body = "".join(
@@ -543,22 +835,31 @@ def tao_html(table, wrong, summary):
     )
 
     notes = "".join(
-        f"<li>{esc(x)}</li>"
-        for x in summary["notes"]
+        f"<li>{esc(note)}</li>"
+        for note in summary["notes"]
     )
 
     sources = "".join(
-        f"<li>{esc(k)}: <code>{esc(v)}</code></li>"
-        for k, v in summary["sources"].items()
+        f"<li>{esc(key)}: "
+        f"<code>{esc(value)}</code></li>"
+        for key, value in summary["sources"].items()
     )
 
     wrong_html = "".join(
-        f"<li>{esc(r['code'])}: chọn cửa {esc(r['chosen_gate'])}, "
-        f"đáp án {esc(r['expected_gate'])}.</li>"
-        for r in wrong
+        f"<li>{esc(row['code'])}: "
+        f"chọn cửa {esc(row['chosen_gate'])}, "
+        f"đáp án {esc(row['expected_gate'])}.</li>"
+        for row in wrong
     ) or (
-        "<li>Không có lượt sai trong bài thủ công được chọn, "
-        "hoặc chưa chọn bài.</li>"
+        "<li>Không có lượt sai trong bài "
+        "thủ công được chọn, hoặc chưa chọn bài.</li>"
+    )
+
+    extra = html_so_do(
+        summary.get(
+            "independent_metrics",
+            {},
+        )
     )
 
     return f'''<!doctype html>
@@ -585,8 +886,12 @@ section {{
     margin: 18px 0;
     border-radius: 12px;
 }}
-h1, h2 {{ color: #173a60; }}
-.scroll {{ overflow-x: auto; }}
+h1, h2 {{
+    color: #173a60;
+}}
+.scroll {{
+    overflow-x: auto;
+}}
 table {{
     border-collapse: collapse;
     width: 100%;
@@ -598,11 +903,19 @@ th, td {{
     text-align: left;
     vertical-align: top;
 }}
-th {{ background: #edf3fb; }}
-code {{ overflow-wrap: anywhere; }}
+th {{
+    background: #edf3fb;
+}}
+code {{
+    overflow-wrap: anywhere;
+}}
 @media print {{
-    body {{ background: white; }}
-    main {{ padding: 0; }}
+    body {{
+        background: white;
+    }}
+    main {{
+        padding: 0;
+    }}
 }}
 </style>
 </head>
@@ -612,7 +925,8 @@ code {{ overflow-wrap: anywhere; }}
     <h1>SmartLogistics QR — Kết quả đánh giá</h1>
     <p><b>{esc(summary["report_status"])}</b></p>
     <p>
-        Mô phỏng phân loại ba cửa. Dữ liệu tham chiếu Olist;
+        Mô phỏng phân loại ba cửa.
+        Dữ liệu tham chiếu Olist;
         mã kiện và quy tắc do nhóm thiết lập.
     </p>
     <p>
@@ -620,6 +934,7 @@ code {{ overflow-wrap: anywhere; }}
         {esc(summary["created_at_utc"])}
     </p>
 </section>
+
 <section>
     <h2>Kết quả các lần thử được chọn</h2>
     <div class="scroll">
@@ -635,14 +950,19 @@ code {{ overflow-wrap: anywhere; }}
         điểm phần trăm.
     </p>
 </section>
+
+{extra}
+
 <section>
     <h2>Lượt chọn sai thủ công</h2>
     <ul>{wrong_html}</ul>
 </section>
+
 <section>
     <h2>Phạm vi và giới hạn</h2>
     <ul>{notes}</ul>
 </section>
+
 <section>
     <h2>Nguồn số liệu</h2>
     <ul>{sources}</ul>
@@ -655,7 +975,9 @@ code {{ overflow-wrap: anywhere; }}
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Tổng hợp kết quả SmartLogistics QR."
+        description=(
+            "Tổng hợp kết quả SmartLogistics QR."
+        )
     )
 
     parser.add_argument(
@@ -673,9 +995,15 @@ def main():
     args = parser.parse_args()
     reports = BASE / "reports"
 
-    table, sources, auto_metrics, wrong = [], {}, {}, []
+    table = []
+    sources = {}
+    auto_metrics = {}
+    wrong = []
+    independent = {}
+
     manual_meta = None
-    final = reference = None
+    final = None
+    reference = None
 
     subsets = (
         [args.subset]
@@ -685,7 +1013,10 @@ def main():
 
     for subset in subsets:
         path, data = chon_bao_cao(
-            tim_bao_cao(reports, subset),
+            tim_bao_cao(
+                reports,
+                subset,
+            ),
             f"tự động {subset}",
         )
 
@@ -696,21 +1027,34 @@ def main():
             args.preview,
         )
 
-        q = checked["qr_metrics"]
+        qr_metrics = checked["qr_metrics"]
+
+        independent[subset] = checked[
+            "independent_metrics"
+        ]
 
         table.append(dong_bang(
             f"Tự động - {subset}",
             checked["expected_parcels_attempted"],
             checked["first_attempt_correct_parcels"],
-            q["all_valid_attempts"]["pipeline_ms"],
-            "Đọc ảnh QR -> nhận cửa từ prepare; không gồm hoạt ảnh",
+            qr_metrics[
+                "all_valid_attempts"
+            ]["pipeline_ms"],
+            (
+                "Đọc ảnh QR -> nhận cửa từ prepare; "
+                "không gồm hoạt ảnh"
+            ),
         ))
 
-        sources[f"Tự động {subset}"] = str(path.resolve())
-        auto_metrics[subset] = q
+        sources[f"Tự động {subset}"] = str(
+            path.resolve()
+        )
+
+        auto_metrics[subset] = qr_metrics
 
         if subset == "final_test":
-            final, reference = checked, comparison
+            final = checked
+            reference = comparison
 
     difference = None
 
@@ -731,22 +1075,31 @@ def main():
             reference,
         )
 
-        correct = sum(int(r["correct"]) for r in rows)
+        correct = sum(
+            int(row["correct"])
+            for row in rows
+        )
 
         table.append(dong_bang(
             "Thủ công - final_test",
             len(rows),
             correct,
             stats,
-            "Hiện mã -> tra bảng mã/điểm đến/cửa -> bấm chọn cửa",
+            (
+                "Hiện mã -> tra bảng mã/điểm đến/cửa "
+                "-> bấm chọn cửa"
+            ),
         ))
 
         wrong = [
-            r for r in rows
-            if r["correct"] == "0"
+            row
+            for row in rows
+            if row["correct"] == "0"
         ]
 
-        sources["Thủ công final_test"] = str(path.resolve())
+        sources["Thủ công final_test"] = str(
+            path.resolve()
+        )
 
         manual_meta = {
             "participant": data["participant"],
@@ -757,67 +1110,96 @@ def main():
         }
 
         difference = round(
-            final["first_attempt_correct_pct_of_full_set"]
+            final[
+                "first_attempt_correct_pct_of_full_set"
+            ]
             - ti_le(correct, 30),
             2,
         )
 
     summary = {
         "schema_version": 2,
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": (
+            datetime.now(timezone.utc).isoformat()
+        ),
         "report_status": (
-            "XEM THỬ — CHƯA DÙNG LÀM KẾT QUẢ ĐÁNH GIÁ CHÍNH THỨC"
+            "XEM THỬ — CHƯA DÙNG LÀM KẾT QUẢ "
+            "ĐÁNH GIÁ CHÍNH THỨC"
             if args.preview
-            else "TỔNG HỢP CÁC LẦN THỬ ĐỦ BỘ ĐƯỢC CHỌN"
+            else "TỔNG HỢP CÁC LẦN THỬ "
+            "ĐỦ BỘ ĐƯỢC CHỌN"
         ),
         "sources": sources,
         "table": table,
         "qr_metrics": auto_metrics,
         "manual": manual_meta,
         "manual_incorrect_trials": wrong,
-        "accuracy_difference_percentage_points": difference,
+        "accuracy_difference_percentage_points": (
+            difference
+        ),
         "speedup_ratio": None,
-        "qr_decode_accuracy_pct": None,
-        "simulated_throughput_parcels_per_minute": None,
+        "independent_metrics": independent,
+        "qr_decode_accuracy_pct": {
+            subset: (
+                metrics.get("qr") or {}
+            ).get("qr_decode_accuracy_pct")
+            for subset, metrics in independent.items()
+        },
+        "simulated_throughput_parcels_per_minute": {
+            subset: (
+                metrics.get("throughput") or {}
+            ).get(
+                "simulated_throughput_parcels_per_minute"
+            )
+            for subset, metrics in independent.items()
+        },
         "notes": [
             (
-                "Độ đúng trong bảng là đối chiếu mã/cửa/trạng thái "
-                "với đáp án; chưa phải độ chính xác đọc QR "
+                "Độ đúng trong bảng là đối chiếu "
+                "mã/cửa/trạng thái với đáp án; "
+                "chưa phải độ chính xác đọc QR "
                 "trên toàn bộ ảnh đầu vào."
             ),
             (
-                "Thời gian tự động dùng pipeline_ms đã lưu. "
-                "Số đo thiếu hoặc bị gián đoạn không được đưa "
-                "vào thống kê; xem số mẫu và qr_metrics trong JSON."
+                "Thời gian tự động dùng pipeline_ms "
+                "đã lưu. Số đo thiếu hoặc bị gián đoạn "
+                "không được đưa vào thống kê; "
+                "xem số mẫu và qr_metrics trong JSON."
             ),
             (
-                "Đọc ảnh, gửi/nhận prepare và hoạt ảnh được "
-                "thống kê riêng trong JSON; không cộng hoạt ảnh "
-                "vào thời gian xác định cửa."
+                "Đọc ảnh, gửi/nhận prepare và hoạt ảnh "
+                "được thống kê riêng trong JSON; "
+                "không cộng hoạt ảnh vào thời gian "
+                "xác định cửa."
             ),
             (
-                "Thủ công dùng bài đọc mã, tra bảng rồi chọn cửa. "
-                "Bài cũ chỉ đọc điểm đến không được gộp "
-                "vào phép đo mới."
+                "Thủ công dùng bài đọc mã, tra bảng "
+                "rồi chọn cửa. Bài cũ chỉ đọc điểm đến "
+                "không được gộp vào phép đo mới."
             ),
             (
-                "Hai phương pháp có đầu vào và thao tác khác nhau; "
-                "không tính tỷ số để kết luận nhanh hơn bao nhiêu lần. "
-                "Chưa đo thời gian xử lý vật lý ngoài thực tế."
+                "Hai phương pháp có đầu vào và "
+                "thao tác khác nhau; không tính tỷ số "
+                "để kết luận nhanh hơn bao nhiêu lần. "
+                "Chưa đo thời gian xử lý vật lý "
+                "ngoài thực tế."
             ),
             (
-                "Mỗi dòng là một lần thử được chọn. Một người "
-                "và một lần chạy chưa đủ khái quát; cần nhiều "
-                "lần thử với thứ tự xáo trộn và lưu seed."
+                "Mỗi dòng là một lần thử được chọn. "
+                "Một người và một lần chạy chưa đủ "
+                "khái quát; cần nhiều lần thử với "
+                "thứ tự xáo trộn và lưu seed."
             ),
             (
-                "P95 dùng nearest-rank. Với ít mẫu, P95 có thể "
-                "bằng giá trị lớn nhất."
+                "P95 dùng nearest-rank. Với ít mẫu, "
+                "P95 có thể bằng giá trị lớn nhất."
             ),
             (
-                "Chưa có kết luận đạt toàn bộ đồ án. Cần đánh giá "
-                "riêng ảnh lỗi, gửi lại yêu cầu, đồng thời, "
-                "lịch sử và thông lượng mô phỏng."
+                "Chưa có kết luận đạt toàn bộ đồ án. "
+                "Cần đánh giá riêng ảnh lỗi, gửi lại "
+                "yêu cầu, đồng thời và lịch sử. "
+                "Xem mục số đo độc lập để biết "
+                "năng suất của lần thử đã chọn."
             ),
         ],
     }
@@ -826,8 +1208,15 @@ def main():
         "%Y%m%dT%H%M%S_%fZ"
     )
 
-    folder = reports / f"{stamp}_tong_hop"
-    folder.mkdir(parents=True, exist_ok=False)
+    folder = (
+        reports
+        / f"{stamp}_tong_hop"
+    )
+
+    folder.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
 
     ghi_csv(
         folder / "bang_tong_hop.csv",
@@ -858,27 +1247,42 @@ def main():
     )
 
     (folder / "bao_cao_danh_gia.html").write_text(
-        tao_html(table, wrong, summary),
+        tao_html(
+            table,
+            wrong,
+            summary,
+        ),
         encoding="utf-8",
     )
 
-    print("\n" + summary["report_status"])
+    print(
+        "\n" + summary["report_status"]
+    )
 
     for row in table:
         print(
             f"{row['phuong_phap']}: "
-            f"đúng {row['dung_lan_dau']}/{row['da_thu']} đã thử; "
-            f"{row['so_mau_thoi_gian']} mẫu thời gian; "
+            f"đúng {row['dung_lan_dau']}/"
+            f"{row['da_thu']} đã thử; "
+            f"{row['so_mau_thoi_gian']} "
+            "mẫu thời gian; "
             f"trung bình {row['trung_binh_ms']} ms"
         )
 
-    print(f"Đã lưu 4 tệp trong: {folder}")
-    print("Mở bao_cao_danh_gia.html bằng trình duyệt.")
+    print(
+        f"Đã lưu 4 tệp trong: {folder}"
+    )
+
+    print(
+        "Mở bao_cao_danh_gia.html "
+        "bằng trình duyệt."
+    )
 
 
 if __name__ == "__main__":
     try:
         main()
+
     except (
         OSError,
         ValueError,
@@ -890,5 +1294,8 @@ if __name__ == "__main__":
         raise SystemExit(
             f"Chưa tổng hợp được: {error}"
         )
+
     except (KeyboardInterrupt, EOFError):
-        raise SystemExit("Đã dừng tổng hợp.")
+        raise SystemExit(
+            "Đã dừng tổng hợp."
+        )

@@ -17,6 +17,11 @@
   ></script>
 
   <script
+    src="{{ url_for('static', filename='qr_decoder.js') }}"
+    defer
+  ></script>
+
+  <script
     src="{{ url_for('static', filename='app.js') }}"
     defer
   ></script>
@@ -27,24 +32,27 @@
   ></script>
 </head>
 
-<body>
-  <header class="header">
+<header class="header">
     <div class="header-inner">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">SL</div>
+
         <div>
-          <p class="eyebrow">SMARTLOGISTICS QR</p>
+          <p class="eyebrow">SMARTLOGISTICS QR · HỆ THỐNG PHÂN LOẠI</p>
           <h1>Trạm phân loại kiện hàng</h1>
         </div>
       </div>
 
-      <span id="connectionStatus" class="connection">
-        Đang kết nối…
-      </span>
+      <div class="header-status-group">
+        <span class="station-pill">3 Cửa phân tuyến</span>
+        <span id="connectionStatus" class="connection">
+          Đang kết nối…
+        </span>
+      </div>
     </div>
 
     <p class="header-description">
-      Mô phỏng phân loại theo điểm đến với ba cửa.
+      Mô phỏng phân loại kiện hàng tự động theo điểm đến với ba cửa (São Paulo, Rio de Janeiro, Belo Horizonte).
       Dữ liệu tham chiếu từ Olist Brazilian E-Commerce.
     </p>
   </header>
@@ -56,62 +64,103 @@
       </p>
     </noscript>
 
-    <div id="notice" class="notice" role="status" aria-live="polite">
+    <div
+      id="notice"
+      class="notice"
+      role="status"
+      aria-live="polite"
+    >
       Đang tải dữ liệu…
     </div>
 
     <div class="workspace">
-      <aside>
-        <section class="card">
+      <aside class="control-sidebar">
+        <section class="card session-card">
           <div class="section-heading">
             <span class="step">01</span>
-            <h2>Phiên làm việc</h2>
+            <div>
+              <h2>Phiên làm việc</h2>
+              <p class="section-subtitle">Khởi tạo hoặc chọn phiên xử lý</p>
+            </div>
           </div>
 
-          <form id="sessionForm">
+          <form id="sessionForm" class="p1-form">
             <label for="sessionName">Tên phiên mới</label>
-            <input
-              id="sessionName"
-              type="text"
-              maxlength="100"
-              placeholder="Ví dụ: Auto demo 01"
-              required
-            >
-            <button id="createButton" class="button primary" type="submit">
-              + Tạo phiên mới
-            </button>
+
+            <div class="input-action-stack">
+              <input
+                id="sessionName"
+                type="text"
+                maxlength="100"
+                placeholder="Ví dụ: Auto demo 01"
+                required
+              >
+
+              <button
+                id="createButton"
+                class="button primary"
+                type="submit"
+              >
+                + Tạo phiên mới
+              </button>
+            </div>
           </form>
 
           <div class="divider"></div>
 
-          <label for="sessionSelect">Chọn phiên</label>
-          <select id="sessionSelect">
-            <option value="">Chưa chọn phiên</option>
-          </select>
+          <div class="session-select-group">
+            <div class="label-row">
+              <label for="sessionSelect">Phiên đang chọn</label>
+              <span class="limit-tag">Tối đa 50 phiên</span>
+            </div>
 
-          <p id="sessionInfo" class="muted">Chưa chọn phiên.</p>
-          <p class="muted small">Hiển thị tối đa 50 phiên gần nhất.</p>
+            <select id="sessionSelect">
+              <option value="">Chưa chọn phiên</option>
+            </select>
 
-          <div class="actions">
-            <button id="refreshButton" class="button secondary" type="button">
-              Làm mới
+            <div class="session-info-box">
+              <span class="session-info-label">Trạng thái phiên hiện tại</span>
+              <p id="sessionInfo" class="session-info-text">
+                Chưa chọn phiên.
+              </p>
+            </div>
+          </div>
+
+          <div class="actions session-actions">
+            <button
+              id="refreshButton"
+              class="button secondary"
+              type="button"
+            >
+              ↻ Làm mới
             </button>
-            <button id="closeButton" class="button danger" type="button" disabled>
+
+            <button
+              id="closeButton"
+              class="button danger"
+              type="button"
+              disabled
+            >
               Đóng phiên
             </button>
           </div>
         </section>
 
-        <section class="card">
+        <section class="card manual-card">
           <div class="section-heading">
             <span class="step">02</span>
-            <h2>Nhập mã bằng tay</h2>
+            <div>
+              <h2>Nhập mã bằng tay</h2>
+              <p class="section-subtitle">Kiểm tra &amp; điều hướng từng kiện</p>
+            </div>
           </div>
 
-          <form id="parcelForm">
-            <label for="parcelCode">Mã kiện</label>
+          <form id="parcelForm" class="p1-form">
+            <label for="parcelCode">Mã kiện hàng</label>
+
             <input
               id="parcelCode"
+              class="code-input"
               type="text"
               maxlength="64"
               placeholder="Ví dụ: KH001"
@@ -119,15 +168,20 @@
               spellcheck="false"
               required
             >
-            <button id="processButton" class="button primary" type="submit" disabled>
-              Xử lý kiện
+
+            <button
+              id="processButton"
+              class="button primary"
+              type="submit"
+              disabled
+            >
+              Xử lý kiện →
             </button>
           </form>
 
-          <p class="muted">
-            Chọn phiên đang mở. Một kiện chỉ được hoàn tất
-            một lần trong cùng phiên.
-          </p>
+          <div class="manual-hint">
+            <strong>Lưu ý thao tác:</strong> Cần chọn một phiên đang mở trước khi nhập. Mỗi mã kiện chỉ hoàn tất một lần trong cùng phiên.
+          </div>
         </section>
       </aside>
 
@@ -159,14 +213,23 @@
           </div>
 
           <form id="qrForm">
-            <label for="qrFile">Chọn một ảnh chứa một mã QR</label>
+            <label for="qrFile">
+              Chọn một ảnh chứa một mã QR
+            </label>
+
             <input
               id="qrFile"
               type="file"
               accept="image/png,image/jpeg"
               required
             >
-            <button id="readQrButton" class="button secondary" type="submit" disabled>
+
+            <button
+              id="readQrButton"
+              class="button secondary"
+              type="submit"
+              disabled
+            >
               1. Đọc ảnh QR
             </button>
           </form>
@@ -187,7 +250,12 @@
             Chưa đọc ảnh. Thao tác đọc ảnh chưa ghi lịch sử.
           </p>
 
-          <button id="processQrButton" class="button primary" type="button" disabled>
+          <button
+            id="processQrButton"
+            class="button primary"
+            type="button"
+            disabled
+          >
             Xử lý mã QR
           </button>
         </section>
@@ -199,6 +267,7 @@
           </div>
 
           <label for="batchFiles">Chọn tối đa 30 ảnh</label>
+
           <input
             id="batchFiles"
             type="file"
@@ -207,20 +276,42 @@
           >
 
           <label for="batchDelay">Khoảng nghỉ giữa ảnh</label>
+
           <select id="batchDelay">
             <option value="0">Không nghỉ</option>
-            <option value="600" selected>600 ms — dễ quan sát</option>
-            <option value="1200">1.200 ms — chạy chậm</option>
+            <option value="600" selected>
+              600 ms — dễ quan sát
+            </option>
+            <option value="1200">
+              1.200 ms — chạy chậm
+            </option>
           </select>
 
           <div class="actions">
-            <button id="batchStart" class="button primary" type="button" disabled>
+            <button
+              id="batchStart"
+              class="button primary"
+              type="button"
+              disabled
+            >
               Bắt đầu lô
             </button>
-            <button id="batchPause" class="button secondary" type="button" disabled>
+
+            <button
+              id="batchPause"
+              class="button secondary"
+              type="button"
+              disabled
+            >
               Tạm dừng
             </button>
-            <button id="batchClear" class="button danger" type="button" disabled>
+
+            <button
+              id="batchClear"
+              class="button danger"
+              type="button"
+              disabled
+            >
               Bỏ hàng đợi
             </button>
           </div>
@@ -240,14 +331,16 @@
           </p>
 
           <p class="muted small">
-            Chạy trên phiên đang chọn. Mỗi ảnh được đọc rồi gửi tuần tự.
-            Ảnh không đọc được QR được ghi thành lượt lỗi.
-            File ảnh hỏng được báo riêng, không tạo lượt xử lý.
-            Mỗi kiện chạy xong chuyển động mới đến ảnh tiếp theo.
-            Khoảng nghỉ được tính thêm sau chuyển động.
-            Cột Minh họa đo thời gian hiển thị trên trang, có thể dài hơn khi đổi tab.
-            Các số đo đọc ảnh và minh họa chỉ giữ trong trang hiện tại.
-            Hàng đợi giữ trong trang hiện tại; lịch sử đã xác nhận lưu ở database.
+            Chạy trên phiên đang chọn. Mỗi ảnh được đọc và xử lý tuần tự.
+            Ảnh không đọc được QR được ghi thành lượt lỗi nghiệp vụ.
+            Tệp ảnh hỏng được báo riêng, không tạo lượt xử lý.
+            Mỗi kiện hoàn tất mô phỏng và xác nhận lưu trước khi chuyển
+            sang ảnh tiếp theo. Khoảng nghỉ được tính giữa các ảnh.
+            Thời gian quyết định đo tại backend không gồm đọc ảnh,
+            truyền mạng hoặc hoạt ảnh.
+            Lịch sử và số đo QR đã xác nhận được lưu trong database.
+            Hàng đợi và kết quả chi tiết của lô giữ trong trang hiện tại;
+            hãy tải JSON năng suất để lưu kết quả đo toàn lô.
           </p>
 
           <div class="table-wrap">
@@ -255,6 +348,7 @@
               <caption class="sr-only">
                 Kết quả lô ảnh trong trang hiện tại
               </caption>
+
               <thead>
                 <tr>
                   <th>STT</th>
@@ -268,6 +362,7 @@
                   <th>Chi tiết</th>
                 </tr>
               </thead>
+
               <tbody id="batchBody"></tbody>
             </table>
           </div>
@@ -281,20 +376,37 @@
 
           <div class="motion-toolbar">
             <div>
-              <label for="motionSpeed">Chuyển động minh họa</label>
+              <label for="motionSpeed">
+                Chuyển động minh họa
+              </label>
+
               <select id="motionSpeed">
-                <option value="1800" selected>Bình thường · 1,8 giây/kiện</option>
-                <option value="900">Nhanh · 0,9 giây/kiện</option>
-                <option value="0">Tắt chuyển động</option>
+                <option value="1800" selected>
+                  Bình thường · 1,8 giây/kiện
+                </option>
+                <option value="900">
+                  Nhanh · 0,9 giây/kiện
+                </option>
+                <option value="0">
+                  Tắt chuyển động
+                </option>
               </select>
             </div>
 
-            <span id="motionState" class="count-badge" role="status">
+            <span
+              id="motionState"
+              class="count-badge"
+              role="status"
+            >
               Sẵn sàng
             </span>
           </div>
 
-          <div id="conveyor" class="conveyor" data-state="idle">
+          <div
+            id="conveyor"
+            class="conveyor"
+            data-state="idle"
+          >
             <svg
               viewBox="0 0 720 350"
               class="conveyor-scene"
@@ -317,7 +429,11 @@
                   height="16"
                   patternUnits="userSpaceOnUse"
                 >
-                  <path d="M 0 0 V 16" stroke="#64748b" stroke-width="3"/>
+                  <path
+                    d="M 0 0 V 16"
+                    stroke="#64748b"
+                    stroke-width="3"
+                  />
                 </pattern>
               </defs>
 
@@ -346,31 +462,72 @@
                 stroke-linejoin="round"
                 stroke-linecap="round"
               >
-                <path id="route1" d="M 60 160 H 300 L 410 65 H 545"/>
-                <path id="route2" d="M 60 160 H 545"/>
-                <path id="route3" d="M 60 160 H 300 L 410 255 H 545"/>
-                <path id="routeCheck" d="M 60 160 H 300 V 310 H 440"/>
+                <path
+                  id="route1"
+                  d="M 60 160 H 300 L 410 65 H 545"
+                />
+                <path
+                  id="route2"
+                  d="M 60 160 H 545"
+                />
+                <path
+                  id="route3"
+                  d="M 60 160 H 300 L 410 255 H 545"
+                />
+                <path
+                  id="routeCheck"
+                  d="M 60 160 H 300 V 310 H 440"
+                />
               </g>
 
-              <text x="28" y="113" class="scene-label">ĐẦU VÀO</text>
-              <text x="245" y="113" class="scene-label">PHÂN NHÁNH</text>
+              <text x="28" y="113" class="scene-label">
+                ĐẦU VÀO
+              </text>
+
+              <text x="245" y="113" class="scene-label">
+                PHÂN NHÁNH
+              </text>
 
               <g class="scene-outlet">
-                <rect x="550" y="34" width="156" height="62" rx="10"/>
+                <rect
+                  x="550"
+                  y="34"
+                  width="156"
+                  height="62"
+                  rx="10"
+                />
                 <text x="565" y="59">CỬA 1</text>
-                <text x="565" y="80" class="scene-city">São Paulo</text>
+                <text x="565" y="80" class="scene-city">
+                  São Paulo
+                </text>
               </g>
 
               <g class="scene-outlet">
-                <rect x="550" y="129" width="156" height="62" rx="10"/>
+                <rect
+                  x="550"
+                  y="129"
+                  width="156"
+                  height="62"
+                  rx="10"
+                />
                 <text x="565" y="154">CỬA 2</text>
-                <text x="565" y="175" class="scene-city">Rio de Janeiro</text>
+                <text x="565" y="175" class="scene-city">
+                  Rio de Janeiro
+                </text>
               </g>
 
               <g class="scene-outlet">
-                <rect x="550" y="224" width="156" height="62" rx="10"/>
+                <rect
+                  x="550"
+                  y="224"
+                  width="156"
+                  height="62"
+                  rx="10"
+                />
                 <text x="565" y="249">CỬA 3</text>
-                <text x="565" y="270" class="scene-city">Belo Horizonte</text>
+                <text x="565" y="270" class="scene-city">
+                  Belo Horizonte
+                </text>
               </g>
 
               <text x="468" y="315" class="check-label">
@@ -382,14 +539,28 @@
                 transform="translate(60 160)"
                 visibility="hidden"
               >
-                <rect x="-35" y="-21" width="70" height="42" rx="7"/>
+                <rect
+                  x="-35"
+                  y="-21"
+                  width="70"
+                  height="42"
+                  rx="7"
+                />
+
                 <path
                   d="M -6 -21 V -11 H 6 V -21"
                   fill="none"
                   stroke="#925c22"
                   stroke-width="2"
                 />
-                <text id="motionCode" text-anchor="middle" y="9">—</text>
+
+                <text
+                  id="motionCode"
+                  text-anchor="middle"
+                  y="9"
+                >
+                  —
+                </text>
               </g>
             </svg>
           </div>
@@ -421,7 +592,11 @@
             </article>
           </div>
 
-          <div id="latestResult" class="latest-result" aria-live="polite">
+          <div
+            id="latestResult"
+            class="latest-result"
+            aria-live="polite"
+          >
             Chưa có kết quả mới trên màn hình.
           </div>
 
@@ -448,21 +623,63 @@
           <div class="history-heading">
             <div>
               <h2>Lịch sử xử lý</h2>
+
               <p class="muted">
                 Mới nhất trước. Mỗi lần tải tối đa 10 lượt.
               </p>
             </div>
 
-            <span id="historyCount" class="count-badge">
+            <span id="historyCount" class="count-badge" role="status">
               0 lượt hiển thị
             </span>
           </div>
+
+          <form id="historyFilterForm" class="history-filters"
+                aria-label="Lọc lịch sử của phiên">
+            <fieldset id="historyFilterFields" disabled>
+              <legend>Bộ lọc lịch sử</legend>
+              <div class="history-filter-grid">
+                <div>
+                  <label for="historyQuery">Mã kiện</label>
+                  <input id="historyQuery" name="q" type="search"
+                         placeholder="Ví dụ: KH001" maxlength="64">
+                </div>
+                <div>
+                  <label for="historyOutcome">Kết quả</label>
+                  <select id="historyOutcome" name="outcome">
+                    <option value="">Tất cả</option>
+                    <option value="success">Thành công</option>
+                    <option value="failure">Thất bại</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="historySource">Nguồn nhập</label>
+                  <select id="historySource" name="source">
+                    <option value="">Tất cả</option>
+                    <option value="manual">Nhập tay</option>
+                    <option value="qr">Ảnh QR</option>
+                    <option value="auto">Tự động</option>
+                    <option value="api">API</option>
+                  </select>
+                </div>
+              </div>
+              <div class="actions">
+                <button type="submit" class="button primary">Áp dụng</button>
+                <button id="historyFilterClear" type="button"
+                        class="button secondary">Xóa lọc</button>
+              </div>
+              <p class="muted small">
+                Lọc toàn bộ lịch sử của phiên đang chọn.
+              </p>
+            </fieldset>
+          </form>
 
           <div class="table-wrap">
             <table>
               <caption class="sr-only">
                 Lịch sử của phiên đang chọn
               </caption>
+
               <thead>
                 <tr>
                   <th>ID</th>
@@ -476,6 +693,7 @@
                   <th>Thời gian</th>
                 </tr>
               </thead>
+
               <tbody id="historyBody">
                 <tr>
                   <td colspan="9">Chưa chọn phiên.</td>

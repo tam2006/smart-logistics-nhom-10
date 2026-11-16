@@ -10,6 +10,8 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
+from nhap_so_do import gan, luu, nhap, van_ban
+
 
 BASE = Path(__file__).resolve().parent
 
@@ -51,23 +53,40 @@ TIMINGS = [
 
 def doc_dap_an(path, subset):
     if not path.is_file():
-        raise ValueError(f"Không tìm thấy tệp đáp án: {path}")
+        raise ValueError(
+            f"Không tìm thấy tệp đáp án: {path}"
+        )
 
     expected = {}
 
-    with path.open(encoding="utf-8-sig", newline="") as file:
+    with path.open(
+        encoding="utf-8-sig",
+        newline="",
+    ) as file:
         reader = csv.DictReader(file)
-        required = {"code", "expected_gate", "expected_status"}
+
+        required = {
+            "code",
+            "expected_gate",
+            "expected_status",
+        }
 
         if not required.issubset(reader.fieldnames or []):
             raise ValueError(
-                "Tệp đáp án cần cột code, expected_gate, expected_status."
+                "Tệp đáp án cần cột code, "
+                "expected_gate, expected_status."
             )
 
         for line, row in enumerate(reader, start=2):
             code = (row["code"] or "").strip()
-            gate_text = (row["expected_gate"] or "").strip()
-            status = (row["expected_status"] or "").strip()
+
+            gate_text = (
+                row["expected_gate"] or ""
+            ).strip()
+
+            status = (
+                row["expected_status"] or ""
+            ).strip()
 
             if re.fullmatch(r"KH[0-9]{3}", code) is None:
                 raise ValueError(
@@ -75,10 +94,17 @@ def doc_dap_an(path, subset):
                 )
 
             if code in expected:
-                raise ValueError(f"Mã đáp án bị lặp: {code}")
+                raise ValueError(
+                    f"Mã đáp án bị lặp: {code}"
+                )
 
-            if gate_text not in {"1", "2", "3"} or status != "success":
-                raise ValueError(f"Đáp án không hợp lệ cho {code}.")
+            if (
+                gate_text not in {"1", "2", "3"}
+                or status != "success"
+            ):
+                raise ValueError(
+                    f"Đáp án không hợp lệ cho {code}."
+                )
 
             expected[code] = {
                 "expected_gate": int(gate_text),
@@ -86,6 +112,7 @@ def doc_dap_an(path, subset):
             }
 
     start = 1 if subset == "demo" else 31
+
     required_codes = {
         f"KH{number:03d}"
         for number in range(start, start + 30)
@@ -101,13 +128,19 @@ def doc_dap_an(path, subset):
 
 def doc_phien(database, session_id):
     if not database.is_file():
-        raise ValueError(f"Không tìm thấy database: {database}")
+        raise ValueError(
+            f"Không tìm thấy database: {database}"
+        )
 
     # Chỉ đọc database, không tạo database mới.
     uri = database.resolve().as_uri() + "?mode=ro"
 
     with closing(
-        sqlite3.connect(uri, uri=True, timeout=10)
+        sqlite3.connect(
+            uri,
+            uri=True,
+            timeout=10,
+        )
     ) as conn:
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA query_only = ON")
@@ -129,19 +162,25 @@ def doc_phien(database, session_id):
             """).fetchall()
 
             if not choices:
-                raise ValueError("Chưa có phiên nào để xuất.")
+                raise ValueError(
+                    "Chưa có phiên nào để xuất."
+                )
 
             print(
                 "\n20 phiên gần nhất "
                 "(hoặc tất cả nếu ít hơn 20):"
             )
 
-            for number, item in enumerate(choices, start=1):
+            for number, item in enumerate(
+                choices,
+                start=1,
+            ):
                 label = (
                     "đã đóng"
                     if item["status"] == "closed"
                     else "đang mở"
                 )
+
                 print(
                     f"{number:2}. {item['name']} | "
                     f"{label} | {item['total']} lượt"
@@ -151,7 +190,10 @@ def doc_phien(database, session_id):
                 "\nNhập SỐ THỨ TỰ của phiên cần xuất: "
             ).strip()
 
-            if not answer.isascii() or not answer.isdigit():
+            if (
+                not answer.isascii()
+                or not answer.isdigit()
+            ):
                 raise ValueError(
                     "Cần nhập số thứ tự trong danh sách."
                 )
@@ -165,7 +207,7 @@ def doc_phien(database, session_id):
 
             session_id = choices[selected - 1]["id"]
 
-        # Phiên, lịch sử và số đo được đọc trong cùng snapshot.
+        # Đọc phiên, lịch sử và số đo trong cùng snapshot.
         conn.execute("BEGIN")
 
         session = conn.execute("""
@@ -180,7 +222,9 @@ def doc_phien(database, session_id):
         """, (session_id,)).fetchone()
 
         if session is None:
-            raise ValueError("Không tìm thấy phiên đã chọn.")
+            raise ValueError(
+                "Không tìm thấy phiên đã chọn."
+            )
 
         rows = conn.execute("""
             SELECT
@@ -238,7 +282,10 @@ def ti_le(numerator, denominator):
     if denominator == 0:
         return None
 
-    return round(numerator * 100 / denominator, 2)
+    return round(
+        numerator * 100 / denominator,
+        2,
+    )
 
 
 def so_hop_le(value):
@@ -256,7 +303,10 @@ def trang_thai_so_do(row):
         return "missing", "Chưa có số đo đã lưu"
 
     if row["source"] != "qr":
-        return "invalid", "Số đo gắn với nguồn không phải qr"
+        return (
+            "invalid",
+            "Số đo gắn với nguồn không phải qr",
+        )
 
     if m.get("valid") != 1:
         return (
@@ -266,10 +316,16 @@ def trang_thai_so_do(row):
         )
 
     if m.get("measurement_version") != 1:
-        return "invalid", "Phiên bản số đo chưa được hỗ trợ"
+        return (
+            "invalid",
+            "Phiên bản số đo chưa được hỗ trợ",
+        )
 
     if m.get("mode") not in ("single", "batch"):
-        return "invalid", "Chế độ đo không hợp lệ"
+        return (
+            "invalid",
+            "Chế độ đo không hợp lệ",
+        )
 
     if (
         not isinstance(m.get("image_name"), str)
@@ -283,13 +339,19 @@ def trang_thai_so_do(row):
             "Số đo hợp lệ nhưng vẫn có lý do loại",
         )
 
-    if not all(so_hop_le(m.get(key)) for key in TIMINGS):
+    if not all(
+        so_hop_le(m.get(key))
+        for key in TIMINGS
+    ):
         return (
             "invalid",
             "Thời gian thiếu, âm hoặc không hữu hạn",
         )
 
-    if m["pipeline_ms"] < max(m["read_ms"], m["prepare_ms"]):
+    if m["pipeline_ms"] < max(
+        m["read_ms"],
+        m["prepare_ms"],
+    ):
         return (
             "invalid",
             "Thời gian QR -> cửa không nhất quán",
@@ -307,20 +369,29 @@ def thong_ke(values):
         "samples": len(values),
         "mean": (
             round(statistics.mean(values), 3)
-            if values else None
+            if values
+            else None
         ),
         "median": (
             round(statistics.median(values), 3)
-            if values else None
+            if values
+            else None
         ),
         "p95": (
             round(
-                values[math.ceil(0.95 * len(values)) - 1],
+                values[
+                    math.ceil(0.95 * len(values)) - 1
+                ],
                 3,
             )
-            if values else None
+            if values
+            else None
         ),
-        "max": round(max(values), 3) if values else None,
+        "max": (
+            round(max(values), 3)
+            if values
+            else None
+        ),
     }
 
 
@@ -336,12 +407,14 @@ def thong_ke_nhom(rows):
 
 def tong_hop_qr(rows):
     qr = [
-        row for row in rows
+        row
+        for row in rows
         if row["source"] == "qr"
     ]
 
     valid = [
-        row for row in qr
+        row
+        for row in qr
         if trang_thai_so_do(row)[0] == "valid"
     ]
 
@@ -351,21 +424,28 @@ def tong_hop_qr(rows):
     )
 
     return {
-        "measurement_type": "qr_image_to_prepared_route",
+        "measurement_type": (
+            "qr_image_to_prepared_route"
+        ),
         "qr_history_attempts": len(qr),
         "valid_measurements": counts["valid"],
         "invalid_measurements": counts["invalid"],
         "missing_measurements": counts["missing"],
-        "valid_coverage_pct": ti_le(len(valid), len(qr)),
+        "valid_coverage_pct": ti_le(
+            len(valid),
+            len(qr),
+        ),
         "all_valid_attempts": thong_ke_nhom(valid),
         "valid_successful_attempts": thong_ke_nhom([
-            row for row in valid
+            row
+            for row in valid
             if row["success"] == 1
             and row["status"] == "success"
         ]),
         "by_mode": {
             mode: thong_ke_nhom([
-                row for row in valid
+                row
+                for row in valid
                 if row["measurement"]["mode"] == mode
             ])
             for mode in ("single", "batch")
@@ -400,28 +480,39 @@ def doi_chieu(session, rows, expected, subset):
         first = attempts[0] if attempts else None
 
         successes = [
-            row for row in attempts
+            row
+            for row in attempts
             if row["success"] == 1
         ]
 
         first_correct = bool(
             first
             and first["success"] == 1
-            and first["status"] == answer["expected_status"]
-            and first["gate"] == answer["expected_gate"]
+            and first["status"]
+            == answer["expected_status"]
+            and first["gate"]
+            == answer["expected_gate"]
         )
 
         if not attempts:
             result = "chua_xu_ly"
+
         elif not successes:
             result = "chua_thanh_cong"
+
         elif len(successes) > 1:
-            result = "bat_thuong_nhieu_luot_thanh_cong"
+            result = (
+                "bat_thuong_nhieu_luot_thanh_cong"
+            )
+
         elif (
-            successes[0]["gate"] == answer["expected_gate"]
-            and successes[0]["status"] == answer["expected_status"]
+            successes[0]["gate"]
+            == answer["expected_gate"]
+            and successes[0]["status"]
+            == answer["expected_status"]
         ):
             result = "dung_cua"
+
         else:
             result = "sai_cua_hoac_trang_thai"
 
@@ -429,39 +520,59 @@ def doi_chieu(session, rows, expected, subset):
             "code": code,
             **answer,
             "attempts": len(attempts),
-            "first_history_id": first["id"] if first else None,
-            "first_status": first["status"] if first else None,
-            "first_gate": first["gate"] if first else None,
+            "first_history_id": (
+                first["id"]
+                if first
+                else None
+            ),
+            "first_status": (
+                first["status"]
+                if first
+                else None
+            ),
+            "first_gate": (
+                first["gate"]
+                if first
+                else None
+            ),
             "first_correct": int(first_correct),
             "successful_attempts": len(successes),
             "completed_gate": (
                 successes[0]["gate"]
-                if len(successes) == 1 else None
+                if len(successes) == 1
+                else None
             ),
             "comparison": result,
         })
 
     counts = Counter(
-        item["comparison"] for item in comparison
+        item["comparison"]
+        for item in comparison
     )
 
     attempted = sum(
-        item["attempts"] > 0 for item in comparison
+        item["attempts"] > 0
+        for item in comparison
     )
 
     first_correct = sum(
-        item["first_correct"] for item in comparison
+        item["first_correct"]
+        for item in comparison
     )
 
     outside = [
-        row for row in rows
+        row
+        for row in rows
         if row["code"] not in expected
     ]
 
     times = [
         float(row["decision_ms"])
         for row in rows
-        if isinstance(row["decision_ms"], (int, float))
+        if isinstance(
+            row["decision_ms"],
+            (int, float),
+        )
         and math.isfinite(row["decision_ms"])
         and row["decision_ms"] >= 0
     ]
@@ -475,64 +586,87 @@ def doi_chieu(session, rows, expected, subset):
 
     if clean_run and session["status"] == "closed":
         conclusion = "DAT_DU_BO"
+
     elif clean_run:
-        conclusion = "DU_BO_DUNG_CUA_NHUNG_PHIEN_CON_MO"
+        conclusion = (
+            "DU_BO_DUNG_CUA_NHUNG_PHIEN_CON_MO"
+        )
+
     elif counts["chua_xu_ly"]:
         conclusion = "CHUA_DU_BO"
+
     else:
         conclusion = "CAN_XEM_CHI_TIET"
 
     summary = {
-        "exported_at_utc": datetime.now(timezone.utc).isoformat(),
+        "exported_at_utc": (
+            datetime.now(timezone.utc).isoformat()
+        ),
         "session": session,
         "subset": subset,
         "expected_parcels": len(expected),
         "history_attempts": len(rows),
         "successful_attempts": sum(
-            row["success"] == 1 for row in rows
+            row["success"] == 1
+            for row in rows
         ),
         "unsuccessful_attempts": sum(
-            row["success"] != 1 for row in rows
+            row["success"] != 1
+            for row in rows
         ),
         "status_counts": dict(Counter(
-            row["status"] for row in rows
+            row["status"]
+            for row in rows
         )),
         "source_counts": dict(Counter(
-            row["source"] for row in rows
+            row["source"]
+            for row in rows
         )),
         "expected_parcels_attempted": attempted,
-        "correctly_completed_parcels": counts["dung_cua"],
+        "correctly_completed_parcels": (
+            counts["dung_cua"]
+        ),
         "wrong_gate_or_status_parcels": (
             counts["sai_cua_hoac_trang_thai"]
         ),
-        "not_successful_parcels": counts["chua_thanh_cong"],
+        "not_successful_parcels": (
+            counts["chua_thanh_cong"]
+        ),
         "multiple_success_parcels": (
-            counts["bat_thuong_nhieu_luot_thanh_cong"]
+            counts[
+                "bat_thuong_nhieu_luot_thanh_cong"
+            ]
         ),
         "missing_parcels": counts["chua_xu_ly"],
         "outside_reference_attempts": len(outside),
         "first_attempt_correct_parcels": first_correct,
         "first_attempt_correct_pct_of_attempted": ti_le(
-            first_correct, attempted
+            first_correct,
+            attempted,
         ),
         "first_attempt_correct_pct_of_full_set": ti_le(
-            first_correct, len(expected)
+            first_correct,
+            len(expected),
         ),
         "correct_completion_pct_of_full_set": ti_le(
-            counts["dung_cua"], len(expected)
+            counts["dung_cua"],
+            len(expected),
         ),
         "decision_ms_valid_samples": len(times),
         "decision_ms_mean_all_attempts": (
             round(statistics.mean(times), 3)
-            if times else None
+            if times
+            else None
         ),
         "decision_ms_median_all_attempts": (
             round(statistics.median(times), 3)
-            if times else None
+            if times
+            else None
         ),
         "decision_ms_max_all_attempts": (
             round(max(times), 3)
-            if times else None
+            if times
+            else None
         ),
         "conclusion": conclusion,
         "notes": [
@@ -553,9 +687,9 @@ def doi_chieu(session, rows, expected, subset):
                 "gồm các lượt trong phiên."
             ),
             (
-                "Số đo QR lấy từ qr_measurements. Chỉ thống kê "
-                "thời gian khi số đo hợp lệ, phiên bản 1 "
-                "và nguồn là qr."
+                "Số đo QR lấy từ qr_measurements. "
+                "Chỉ thống kê thời gian khi số đo hợp lệ, "
+                "phiên bản 1 và nguồn là qr."
             ),
             (
                 "QR -> xác định cửa không gồm hoạt ảnh, "
@@ -564,14 +698,16 @@ def doi_chieu(session, rows, expected, subset):
                 "thông lượng mô phỏng thực tế."
             ),
             (
-                "Chưa đánh giá độ chính xác đọc QR hay tỷ lệ "
-                "xử lý lỗi: cần ảnh đầu vào, đáp án và cả lượt "
-                "đọc ảnh thất bại. Đối chiếu hiện tại chỉ áp dụng "
-                "bộ 30 kiện hợp lệ."
+                "Chưa đánh giá độ chính xác đọc QR hay "
+                "tỷ lệ xử lý lỗi chỉ từ lịch sử. "
+                "Cần ảnh đầu vào, đáp án và cả lượt "
+                "đọc ảnh thất bại. Đối chiếu định tuyến "
+                "hiện tại áp dụng bộ 30 kiện hợp lệ."
             ),
             (
-                "Phiên đang mở là kết quả tạm tại thời điểm đọc; "
-                "bộ thiếu chưa được kết luận đạt đủ bộ."
+                "Phiên đang mở là kết quả tạm tại "
+                "thời điểm đọc; bộ thiếu chưa được "
+                "kết luận đạt đủ bộ."
             ),
         ],
     }
@@ -580,7 +716,9 @@ def doi_chieu(session, rows, expected, subset):
     summary["routing_conclusion"] = conclusion
     summary["qr_metrics"] = tong_hop_qr(rows)
     summary["qr_decode_accuracy_pct"] = None
-    summary["simulated_throughput_parcels_per_minute"] = None
+    summary[
+        "simulated_throughput_parcels_per_minute"
+    ] = None
 
     return comparison, summary
 
@@ -590,11 +728,17 @@ def dong_xuat(row):
     state, reason = trang_thai_so_do(row)
 
     return {
-        **{key: row.get(key) for key in HISTORY_FIELDS},
+        **{
+            key: row.get(key)
+            for key in HISTORY_FIELDS
+        },
         "measurement_present": int(
             row.get("measurement") is not None
         ),
-        **{key: m.get(key) for key in MEASUREMENT_FIELDS},
+        **{
+            key: m.get(key)
+            for key in MEASUREMENT_FIELDS
+        },
         "measurement_created_at": m.get("created_at"),
         "measurement_check": state,
         "measurement_exclusion_reason": reason,
@@ -614,9 +758,15 @@ def ghi_csv(path, fields, rows):
         return value
 
     with path.open(
-        "w", encoding="utf-8-sig", newline=""
+        "w",
+        encoding="utf-8-sig",
+        newline="",
     ) as file:
-        writer = csv.DictWriter(file, fieldnames=fields)
+        writer = csv.DictWriter(
+            file,
+            fieldnames=fields,
+        )
+
         writer.writeheader()
 
         for row in rows:
@@ -629,7 +779,10 @@ def ghi_csv(path, fields, rows):
 def noi_dung_tong_ket(summary):
     s = summary
     session = s["session"]
-    first_rate = s["first_attempt_correct_pct_of_attempted"]
+
+    first_rate = s[
+        "first_attempt_correct_pct_of_attempted"
+    ]
 
     first_text = (
         "chưa có dữ liệu"
@@ -650,7 +803,10 @@ def noi_dung_tong_ket(summary):
         "",
         f"Tổng lượt lịch sử: {s['history_attempts']}",
         f"Lượt thành công: {s['successful_attempts']}",
-        f"Lượt không thành công: {s['unsuccessful_attempts']}",
+        (
+            "Lượt không thành công: "
+            f"{s['unsuccessful_attempts']}"
+        ),
         (
             "Kiện trong đáp án đã có lượt xử lý: "
             f"{s['expected_parcels_attempted']}"
@@ -680,7 +836,8 @@ def noi_dung_tong_ket(summary):
         (
             "Đúng ngay lần đầu trên số mã đã thử: "
             f"{s['first_attempt_correct_parcels']}/"
-            f"{s['expected_parcels_attempted']} ({first_text})"
+            f"{s['expected_parcels_attempted']} "
+            f"({first_text})"
         ),
         (
             "Hoàn tất đúng cửa trên toàn bộ: "
@@ -707,25 +864,46 @@ def noi_dung_tong_ket(summary):
         f"Kết luận: {s['conclusion']}",
         "",
         "GHI CHU:",
-        *[f"- {note}" for note in s["notes"]],
+        *[
+            f"- {note}"
+            for note in s["notes"]
+        ],
     ]
 
     q = s["qr_metrics"]
-    t = q["all_valid_attempts"]["pipeline_ms"]
+
+    t = q[
+        "all_valid_attempts"
+    ]["pipeline_ms"]
 
     lines.extend([
         "",
         "SO DO QR DA LUU (ms):",
-        f"Lượt QR trong lịch sử: {q['qr_history_attempts']}",
+        (
+            "Lượt QR trong lịch sử: "
+            f"{q['qr_history_attempts']}"
+        ),
         f"Số đo hợp lệ: {q['valid_measurements']}",
         f"Số đo bị loại: {q['invalid_measurements']}",
-        f"Lượt QR chưa có số đo: {q['missing_measurements']}",
+        (
+            "Lượt QR chưa có số đo: "
+            f"{q['missing_measurements']}"
+        ),
         f"QR -> cửa trung bình: {t['mean']}",
         f"QR -> cửa trung vị: {t['median']}",
         f"QR -> cửa P95 (nearest-rank): {t['p95']}",
-        "Hoạt ảnh được thống kê riêng trong summary.json.",
-        "Kết luận đủ bộ ở trên chỉ xét định tuyến và lịch sử.",
-        "Chưa có kết luận đạt toàn bộ yêu cầu đồ án.",
+        (
+            "Hoạt ảnh được thống kê riêng "
+            "trong summary.json."
+        ),
+        (
+            "Kết luận đủ bộ ở trên chỉ xét "
+            "định tuyến và lịch sử."
+        ),
+        (
+            "Chưa có kết luận đạt toàn bộ "
+            "yêu cầu đồ án."
+        ),
     ])
 
     return "\n".join(lines) + "\n"
@@ -733,7 +911,10 @@ def noi_dung_tong_ket(summary):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Xuất lịch sử và đối chiếu đáp án QR."
+        description=(
+            "Xuất lịch sử, đối chiếu đáp án "
+            "và nhập số đo QR/năng suất."
+        )
     )
 
     parser.add_argument(
@@ -741,36 +922,136 @@ def main():
         choices=["demo", "final_test"],
         default="demo",
     )
+
     parser.add_argument("--session-id")
+
     parser.add_argument(
         "--database",
         type=Path,
-        default=BASE / "instance" / "smartlogistics.db",
+        default=(
+            BASE
+            / "instance"
+            / "smartlogistics.db"
+        ),
     )
-    parser.add_argument("--reference", type=Path)
+
+    parser.add_argument(
+        "--reference",
+        type=Path,
+    )
+
+    parser.add_argument(
+        "--qr-evaluation",
+        type=Path,
+        help="JSON kết quả đánh giá đọc QR.",
+    )
+
+    parser.add_argument(
+        "--qr-manifest",
+        type=Path,
+        help="CSV đáp án đã dùng khi đánh giá QR.",
+    )
+
+    parser.add_argument(
+        "--qr-images",
+        type=Path,
+        help="Thư mục chứa ảnh nguồn đã đánh giá QR.",
+    )
+
+    parser.add_argument(
+        "--throughput",
+        type=Path,
+        help="JSON năng suất lô thuộc phiên cần xuất.",
+    )
 
     args = parser.parse_args()
 
     reference = (
         args.reference
-        or BASE / "data" / "reference"
-        / args.subset / "expected_answers.csv"
+        or BASE
+        / "data"
+        / "reference"
+        / args.subset
+        / "expected_answers.csv"
     )
 
-    expected = doc_dap_an(reference, args.subset)
-    session, rows = doc_phien(args.database, args.session_id)
+    expected = doc_dap_an(
+        reference,
+        args.subset,
+    )
+
+    session, rows = doc_phien(
+        args.database,
+        args.session_id,
+    )
 
     comparison, summary = doi_chieu(
-        session, rows, expected, args.subset
+        session,
+        rows,
+        expected,
+        args.subset,
     )
 
-    summary["reference_file"] = str(reference.resolve())
+    summary["reference_file"] = str(
+        reference.resolve()
+    )
+
+    # Kiểm tra số đo độc lập trước khi tạo báo cáo.
+    metrics = nhap(
+        args.qr_evaluation,
+        args.qr_manifest,
+        args.qr_images,
+        args.throughput,
+        session,
+        rows,
+        expected,
+    )
+
+    gan(summary, metrics)
+
+    summary["notes"] = [
+        note
+        for note in summary["notes"]
+        if not note.startswith(
+            "Chưa đánh giá độ chính xác đọc QR"
+        )
+    ]
+
+    summary["notes"].append(
+        "Độ chính xác QR lấy từ JSON và CSV đáp án "
+        "độc lập; ảnh nguồn được đối chiếu SHA256. "
+        "Năng suất lấy từ JSON lô, đối chiếu request "
+        "và lịch sử. Số đo thiếu ảnh/lỗi tệp không "
+        "dùng để kết luận độ chính xác; năng suất "
+        "bị gián đoạn không được đưa vào thống kê. "
+        "Các kiểm tra phát hiện số liệu không nhất quán, "
+        "không chứng minh tính xác thực của tệp "
+        "bị chỉnh sửa có chủ ý."
+    )
 
     stamp = datetime.now(timezone.utc).strftime(
         "%Y%m%dT%H%M%S_%fZ"
     )
-    folder = BASE / "reports" / f"{stamp}_{args.subset}"
-    folder.mkdir(parents=True, exist_ok=False)
+
+    folder = (
+        BASE
+        / "reports"
+        / f"{stamp}_{args.subset}"
+    )
+
+    folder.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
+
+    # Lưu bản sao số đo và ảnh nguồn để đối chiếu lại.
+    luu(
+        folder,
+        args.qr_evaluation,
+        args.qr_manifest,
+        args.qr_images,
+        args.throughput,
+    )
 
     comparison_fields = [
         "code",
@@ -826,7 +1107,11 @@ def main():
         encoding="utf-8",
     )
 
-    text = noi_dung_tong_ket(summary)
+    text = (
+        noi_dung_tong_ket(summary)
+        + "\n"
+        + van_ban(metrics)
+    )
 
     (folder / "tong_ket.txt").write_text(
         text,
@@ -834,7 +1119,12 @@ def main():
     )
 
     print("\n" + text)
-    print(f"Đã lưu 5 tệp trong THƯ MỤC: {folder}")
+
+    print(
+        "Đã lưu 5 tệp báo cáo và bản sao "
+        f"số đo nguồn nếu có: {folder}"
+    )
+
     print(
         "Chỉ đọc database; "
         "không tạo phiên hoặc thêm lịch sử."
@@ -844,14 +1134,21 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+
     except (
         ValueError,
         OSError,
         sqlite3.Error,
         csv.Error,
+        KeyError,
+        TypeError,
+        OverflowError,
     ) as error:
         raise SystemExit(
             f"Không xuất được báo cáo: {error}"
         )
+
     except (KeyboardInterrupt, EOFError):
-        raise SystemExit("Đã dừng thao tác xuất.")
+        raise SystemExit(
+            "Đã dừng thao tác xuất."
+        )

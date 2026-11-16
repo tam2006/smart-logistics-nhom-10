@@ -775,6 +775,21 @@ def xem_lich_su():
     session_id = request.args.get("session_id")
     limit_text = request.args.get("limit", "100")
     before_text = request.args.get("before_id")
+    keyword = request.args.get("q", "").strip()
+    outcome = request.args.get("outcome", "")
+    source = request.args.get("source", "")
+
+    if len(keyword) > 64:
+        return loi("invalid_input", "Mã tìm kiếm tối đa 64 ký tự.", 400)
+
+    if outcome not in ("", "success", "failure"):
+        return loi("invalid_input", "Kết quả lọc không hợp lệ.", 400)
+
+    if source not in ("", "manual", "qr", "auto", "api"):
+        return loi("invalid_input", "Nguồn nhập không hợp lệ.", 400)
+
+    if (keyword or outcome or source) and session_id is None:
+        return loi("invalid_input", "Hãy chọn phiên trước khi lọc.", 400)
 
     if re.fullmatch(r"[0-9]{1,3}", limit_text) is None:
         return loi(
@@ -845,6 +860,19 @@ def xem_lich_su():
         if before_id is not None:
             conditions.append("id < ?")
             params.append(before_id)
+
+        # Lọc trước LIMIT để tìm cả các lượt chưa hiển thị.
+        if keyword:
+            conditions.append("instr(upper(code), upper(?)) > 0")
+            params.append(keyword)
+
+        if outcome:
+            conditions.append("success = ?")
+            params.append(1 if outcome == "success" else 0)
+
+        if source:
+            conditions.append("source = ?")
+            params.append(source)
 
         sql = "SELECT * FROM history"
 

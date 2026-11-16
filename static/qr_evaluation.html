@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đánh giá đọc QR — Nhóm 10</title>
+
+  <script src="vendor/jsQR.js" defer></script>
+  <script src="qr_decoder.js" defer></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #eef4f9;
+      color: #19334d;
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+
+    main {
+      max-width: 1150px;
+      margin: 30px auto;
+      padding: 24px;
+      background: white;
+      border-radius: 16px;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0;
+      font-weight: 600;
+    }
+
+    input {
+      display: block;
+      margin-top: 8px;
+      max-width: 100%;
+    }
+
+    button {
+      padding: 11px 18px;
+      margin: 5px 8px 5px 0;
+      border: 0;
+      border-radius: 8px;
+      background: #1764be;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    #message {
+      white-space: pre-line;
+      padding: 12px;
+      background: #edf5fc;
+    }
+
+    .scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #dce5ee;
+      padding: 10px;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    th {
+      background: #edf5fc;
+    }
+
+    a {
+      color: #1764be;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <a href="/">← Về trang phân loại</a>
+
+  <h1>Đánh giá độ chính xác đọc QR</h1>
+
+  <p>
+    Chọn CSV đáp án và toàn bộ ảnh của bộ thử.
+    Trang dùng cùng hàm đọc QR với app.
+    Không tạo phiên hoặc ghi lịch sử phân loại.
+  </p>
+
+  <p>
+    CSV hiện có: <code>code,qr_payload</code>,
+    mỗi mã ứng với ảnh <code>code.png</code>.
+    Với bộ thử khác, dùng
+    <code>image_name,expected_payload</code>;
+    để trống expected_payload chỉ khi đáp án xác nhận
+    ảnh không chứa QR.
+    Nội dung QR được so sánh nguyên văn.
+  </p>
+
+  <label>
+    1. Chọn CSV đáp án
+    <input
+      id="manifest"
+      type="file"
+      accept=".csv,text/csv"
+    >
+  </label>
+
+  <label>
+    2. Chọn toàn bộ ảnh PNG hoặc JPEG của bộ thử
+    <input
+      id="images"
+      type="file"
+      accept="image/png,image/jpeg"
+      multiple
+    >
+  </label>
+
+  <p>
+    Đáp án phải chuẩn bị trước khi chạy,
+    không lấy từ kết quả giải mã.
+    Ảnh thiếu, lỗi tệp và ảnh đọc sai đều giữ trong mẫu số.
+    Ảnh ngoài đáp án cần xử lý trước khi chạy.
+  </p>
+
+  <button id="run" type="button">
+    Chạy đánh giá
+  </button>
+
+  <button id="download" type="button" disabled>
+    Tải kết quả JSON
+  </button>
+
+  <p id="message" role="status" aria-live="polite">
+    Chưa chạy đánh giá.
+  </p>
+
+  <p>
+    Giữ tab này hiển thị khi chạy để đo thời gian.
+    Nếu tab bị ẩn, kết quả đối chiếu vẫn được giữ
+    nhưng số đo thời gian của lần chạy không được dùng
+    để kết luận hiệu năng.
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Ảnh</th>
+          <th>Đáp án</th>
+          <th>Đọc được</th>
+          <th>Kết quả</th>
+          <th>Đọc ảnh (ms)</th>
+          <th>Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+"use strict";
+
+function parseCsv(text) {
+  text = text.replace(/^\uFEFF/, "");
+
+  const rows = [];
+
+  let row = [];
+  let field = "";
+  let quoted = false;
+  let closed = false;
+
+  function cell() {
+    row.push(field);
+    field = "";
+    closed = false;
+  }
+
+  function line() {
+    cell();
+
+    if (row.some(value => value !== "")) {
+      rows.push(row);
+    }
+
+    row = [];
+  }
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') {
+        quoted = false;
+        closed = true;
+      } else {
+        field += c;
+      }
+
+    } else if (c === ",") {
+      cell();
+
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") {
+        i++;
+      }
+
+      line();
+
+    } else if (
+      c === '"' &&
+      field === "" &&
+      !closed
+    ) {
+      quoted = true;
+
+    } else {
+      if (closed || c === '"') {
+        throw new Error(
+          "CSV có dấu nháy không hợp lệ."
+        );
+      }
+
+      field += c;
+    }
+  }
+
+  if (quoted) {
+    throw new Error("CSV thiếu dấu nháy đóng.");
+  }
+
+  if (field !== "" || row.length || closed) {
+    line();
+  }
+
+  return rows;
+}
+
+function parseManifest(text) {
+  const rows = parseCsv(text);
+
+  if (rows.length < 2) {
+    throw new Error("CSV chưa có đáp án.");
+  }
+
+  const headers = rows.shift().map(
+    value => value.trim()
+  );
+
+  if (new Set(headers).size !== headers.length) {
+    throw new Error("CSV trùng tên cột.");
+  }
+
+  const explicit =
+    headers.includes("image_name") &&
+    headers.includes("expected_payload");
+
+  const legacy =
+    headers.includes("code") &&
+    headers.includes("qr_payload");
+
+  if (!explicit && !legacy) {
+    throw new Error(
+      "CSV cần cột code,qr_payload hoặc " +
+      "image_name,expected_payload."
+    );
+  }
+
+  const names = new Set();
+
+  return rows.map((row, index) => {
+    if (row.length !== headers.length) {
+      throw new Error(
+        `CSV dòng ${index + 2} sai số cột.`
+      );
+    }
+
+    const get = key => row[headers.indexOf(key)];
+
+    const name = explicit
+      ? get("image_name").trim()
+      : `${get("code").trim()}.png`;
+
+    const expected = get(
+      explicit ? "expected_payload" : "qr_payload"
+    );
+
+    if (!/^[^/\\]+\.(png|jpe?g)$/i.test(name)) {
+      throw new Error(
+        `Tên ảnh không hợp lệ: ${name}`
+      );
+    }
+
+    if (!explicit && !get("code").trim()) {
+      throw new Error("CSV có mã kiện trống.");
+    }
+
+    if (!explicit && expected === "") {
+      throw new Error(
+        `Đáp án QR trống: ${name}`
+      );
+    }
+
+    if (names.has(name)) {
+      throw new Error(`CSV trùng ảnh: ${name}`);
+    }
+
+    names.add(name);
+
+    return {
+      image_name: name,
+      expected_payload: expected,
+      expects_qr: expected !== "",
+    };
+  });
+}
+
+function mapFiles(files, manifest) {
+  const known = new Set(
+    manifest.map(item => item.image_name)
+  );
+
+  const result = new Map();
+
+  for (const file of files) {
+    if (result.has(file.name)) {
+      throw new Error(
+        `Chọn trùng tên ảnh: ${file.name}`
+      );
+    }
+
+    if (!known.has(file.name)) {
+      throw new Error(
+        `Ảnh ngoài CSV đáp án: ${file.name}`
+      );
+    }
+
+    result.set(file.name, file);
+  }
+
+  return result;
+}
+
+function compareDecoded(expected, decoded) {
+  return expected.expects_qr
+    ? decoded.found === true &&
+      decoded.code === expected.expected_payload
+    : decoded.found === false;
+}
+
+function summarize(results) {
+  const positive = results.filter(
+    row => row.expects_qr
+  );
+
+  const negative = results.filter(
+    row => !row.expects_qr
+  );
+
+  const percentage = rows => rows.length
+    ? 100 * rows.filter(row => row.correct).length
+      / rows.length
+    : null;
+
+  return {
+    expected_images: results.length,
+
+    correct_images: results.filter(
+      row => row.correct
+    ).length,
+
+    positive_images: positive.length,
+
+    qr_decode_accuracy_pct:
+      percentage(positive),
+
+    negative_images: negative.length,
+
+    no_qr_correct_rejection_pct:
+      percentage(negative),
+
+    overall_expected_result_pct:
+      percentage(results),
+
+    missing_images: results.filter(
+      row => row.status === "missing_file"
+    ).length,
+
+    file_errors: results.filter(
+      row => row.status === "file_error"
+    ).length,
+  };
+}
+
+const ui = id => document.getElementById(id);
+
+const labels = {
+  correct: "Đúng",
+  mismatch: "Sai nội dung",
+  unreadable: "Không đọc được QR",
+  false_positive: "Nhận nhầm QR",
+  missing_file: "Thiếu ảnh",
+  file_error: "Lỗi tệp",
+};
+
+let running = false;
+let report = null;
+let hiddenDuringRun = false;
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+    if (
+      running &&
+      document.visibilityState !== "visible"
+    ) {
+      hiddenDuringRun = true;
+    }
+  }
+);
+
+async function sha256(bytes) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    bytes
+  );
+
+  return Array.from(
+    new Uint8Array(digest),
+    value => value.toString(16).padStart(2, "0")
+  ).join("");
+}
+
+function addRow(row) {
+  const tr = document.createElement("tr");
+
+  const values = [
+    row.image_name,
+
+    row.expects_qr
+      ? row.expected_payload
+      : "(không QR)",
+
+    row.found
+      ? row.decoded_payload
+      : "—",
+
+    labels[row.status],
+
+    row.read_ms === null
+      ? "—"
+      : row.read_ms.toFixed(2),
+
+    row.error || "",
+  ];
+
+  for (const value of values) {
+    const td = document.createElement("td");
+    td.textContent = value;
+    tr.append(td);
+  }
+
+  ui("rows").append(tr);
+}
+
+function resetReport() {
+  report = null;
+
+  ui("download").disabled = true;
+  ui("rows").replaceChildren();
+
+  ui("message").textContent =
+    "Đã đổi dữ liệu. Cần chạy đánh giá lại.";
+}
+
+ui("manifest").addEventListener(
+  "change",
+  resetReport
+);
+
+ui("images").addEventListener(
+  "change",
+  resetReport
+);
+
+ui("run").addEventListener(
+  "click",
+  async () => {
+    if (running) return;
+
+    running = true;
+    report = null;
+
+    hiddenDuringRun =
+      document.visibilityState !== "visible";
+
+    ui("run").disabled = true;
+    ui("download").disabled = true;
+    ui("manifest").disabled = true;
+    ui("images").disabled = true;
+    ui("rows").replaceChildren();
+
+    try {
+      if (
+        !window.SmartLogisticsQR ||
+        typeof window.jsQR !== "function"
+      ) {
+        throw new Error(
+          "Chưa tải được jsQR hoặc qr_decoder.js. " +
+          "Mở trang qua Flask và kiểm tra hai file."
+        );
+      }
+
+      const csv = ui("manifest").files[0];
+
+      if (!csv) {
+        throw new Error(
+          "Chọn CSV đáp án trước."
+        );
+      }
+
+      if (csv.size > 2 * 1024 * 1024) {
+        throw new Error("CSV vượt 2 MB.");
+      }
+
+      const bytes = await csv.arrayBuffer();
+
+      const manifest = parseManifest(
+        new TextDecoder(
+          "utf-8",
+          { fatal: true }
+        ).decode(bytes)
+      );
+
+      const files = mapFiles(
+        Array.from(ui("images").files),
+        manifest
+      );
+
+      if (!files.size) {
+        throw new Error(
+          "Chọn ảnh cần đánh giá trước."
+        );
+      }
+
+      const startedAt = new Date().toISOString();
+
+      const canvas =
+        document.createElement("canvas");
+
+      const results = [];
+
+      for (const expected of manifest) {
+        ui("message").textContent =
+          `Đang đánh giá ${results.length + 1}` +
+          `/${manifest.length}: ` +
+          expected.image_name;
+
+        const file = files.get(
+          expected.image_name
+        );
+
+        const row = {
+          ...expected,
+          image_sha256: null,
+          found: null,
+          decoded_payload: null,
+          read_ms: null,
+          correct: false,
+          status: "missing_file",
+          error: "",
+        };
+
+        if (file) {
+          try {
+            if (file.size > 5 * 1024 * 1024) {
+              throw new Error("Ảnh vượt 5 MB.");
+            }
+
+            row.image_sha256 = await sha256(
+              await file.arrayBuffer()
+            );
+
+            const decoded =
+              await window.SmartLogisticsQR
+                .decodeImage(file, canvas);
+
+            row.found = decoded.found;
+            row.decoded_payload = decoded.code;
+            row.read_ms = decoded.readMs;
+
+            row.correct = compareDecoded(
+              expected,
+              decoded
+            );
+
+            row.status = row.correct
+              ? "correct"
+              : expected.expects_qr
+                ? decoded.found
+                  ? "mismatch"
+                  : "unreadable"
+                : "false_positive";
+
+          } catch (error) {
+            row.status = "file_error";
+            row.error = error.message;
+          }
+        }
+
+        results.push(row);
+        addRow(row);
+
+        await new Promise(
+          resolve => setTimeout(resolve, 0)
+        );
+      }
+
+      report = {
+        schema_version: 1,
+
+        run_id: crypto.randomUUID(),
+
+        started_at: startedAt,
+
+        finished_at: new Date().toISOString(),
+
+        decoder_version:
+          window.SmartLogisticsQR.decoderVersion,
+
+        manifest_name: csv.name,
+
+        manifest_sha256: await sha256(bytes),
+
+        user_agent: navigator.userAgent,
+
+        timing_valid: !hiddenDuringRun,
+
+        timing_invalid_reason:
+          hiddenDuringRun ? "page_hidden" : null,
+
+        summary: summarize(results),
+
+        results,
+      };
+
+      const stats = report.summary;
+
+      const fmt = value => value === null
+        ? "chưa có mẫu"
+        : `${value.toFixed(2)}%`;
+
+      ui("message").textContent =
+        `Hoàn tất ${stats.expected_images} đáp án. ` +
+        `Đúng ${stats.correct_images}` +
+        `/${stats.expected_images}.\n` +
+
+        "Độ chính xác giải mã ảnh có QR: " +
+        `${fmt(stats.qr_decode_accuracy_pct)} ` +
+        `(${stats.positive_images} ảnh).\n` +
+
+        "Từ chối đúng ảnh không QR: " +
+        `${fmt(stats.no_qr_correct_rejection_pct)} ` +
+        `(${stats.negative_images} ảnh).\n` +
+
+        `Thiếu ảnh: ${stats.missing_images}; ` +
+        `lỗi tệp: ${stats.file_errors}.\n` +
+
+        "Số đo thời gian: " +
+        (
+          report.timing_valid
+            ? "hợp lệ"
+            : "không hợp lệ do tab bị ẩn"
+        ) +
+        ".";
+
+      ui("download").disabled = false;
+
+    } catch (error) {
+      ui("message").textContent =
+        "Chưa hoàn thành đánh giá: " +
+        error.message;
+
+    } finally {
+      running = false;
+
+      ui("run").disabled = false;
+      ui("manifest").disabled = false;
+      ui("images").disabled = false;
+    }
+  }
+);
+
+ui("download").addEventListener(
+  "click",
+  () => {
+    if (!report || running) return;
+
+    const url = URL.createObjectURL(
+      new Blob(
+        [JSON.stringify(report, null, 2)],
+        { type: "application/json" }
+      )
+    );
+
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download =
+      `qr_evaluation_${report.run_id}.json`;
+
+    document.body.append(a);
+    a.click();
+    a.remove();
+
+    setTimeout(
+      () => URL.revokeObjectURL(url),
+      1000
+    );
+  }
+);
+</script>
+</body>
+</html>
