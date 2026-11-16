@@ -260,41 +260,44 @@
           </button>
         </section>
 
-        <section class="card">
+        <section class="card batch-card">
           <div class="section-heading">
             <span class="step">04</span>
-            <h2>Chạy lô ảnh QR</h2>
+            <div>
+              <h2>Chạy lô ảnh QR</h2>
+              <p class="muted small batch-subtitle">Xử lý tuần tự nhiều ảnh QR trong phiên đang chọn</p>
+            </div>
           </div>
 
-          <label for="batchFiles">Chọn tối đa 30 ảnh</label>
+          <div class="batch-controls">
+            <div class="batch-control-group">
+              <label for="batchFiles">1. Chọn tối đa 30 ảnh</label>
+              <input
+                id="batchFiles"
+                type="file"
+                accept="image/png,image/jpeg"
+                multiple
+              >
+            </div>
 
-          <input
-            id="batchFiles"
-            type="file"
-            accept="image/png,image/jpeg"
-            multiple
-          >
+            <div class="batch-control-group">
+              <label for="batchDelay">2. Khoảng nghỉ giữa các ảnh</label>
+              <select id="batchDelay">
+                <option value="0">Không nghỉ (chạy liên tục)</option>
+                <option value="600" selected>600 ms — dễ quan sát</option>
+                <option value="1200">1.200 ms — chạy chậm</option>
+              </select>
+            </div>
+          </div>
 
-          <label for="batchDelay">Khoảng nghỉ giữa ảnh</label>
-
-          <select id="batchDelay">
-            <option value="0">Không nghỉ</option>
-            <option value="600" selected>
-              600 ms — dễ quan sát
-            </option>
-            <option value="1200">
-              1.200 ms — chạy chậm
-            </option>
-          </select>
-
-          <div class="actions">
+          <div class="actions batch-actions">
             <button
               id="batchStart"
               class="button primary"
               type="button"
               disabled
             >
-              Bắt đầu lô
+              ▶ Bắt đầu lô
             </button>
 
             <button
@@ -303,7 +306,7 @@
               type="button"
               disabled
             >
-              Tạm dừng
+              ⏸ Tạm dừng
             </button>
 
             <button
@@ -312,38 +315,46 @@
               type="button"
               disabled
             >
-              Bỏ hàng đợi
+              ✕ Bỏ hàng đợi
             </button>
           </div>
 
-          <p>
+          <div class="batch-status-box">
+            <div class="batch-progress-header">
+              <span class="batch-progress-label">Tiến độ xử lý lô</span>
+            </div>
             <progress
               id="batchProgress"
               max="1"
               value="0"
-              style="width:100%"
               aria-label="Tiến độ lô"
             ></progress>
-          </p>
+            <p id="batchInfo" class="note batch-info" aria-live="polite">
+              Chưa chọn ảnh.
+            </p>
+          </div>
 
-          <p id="batchInfo" class="note" aria-live="polite">
-            Chưa chọn ảnh.
-          </p>
+          <details class="batch-guide">
+            <summary>Quy tắc vận hành &amp; ghi nhận dữ liệu lô</summary>
+            <p class="muted small">
+              Chạy trên phiên đang chọn. Mỗi ảnh được đọc và xử lý tuần tự.
+              Ảnh không đọc được QR được ghi thành lượt lỗi nghiệp vụ.
+              Tệp ảnh hỏng được báo riêng, không tạo lượt xử lý.
+              Mỗi kiện hoàn tất mô phỏng và xác nhận lưu trước khi chuyển
+              sang ảnh tiếp theo. Khoảng nghỉ được tính giữa các ảnh.
+              Thời gian quyết định đo tại backend không gồm đọc ảnh,
+              truyền mạng hoặc hoạt ảnh.
+              Lịch sử và số đo QR đã xác nhận được lưu trong database.
+              Hàng đợi và kết quả chi tiết của lô giữ trong trang hiện tại;
+              hãy tải JSON năng suất để lưu kết quả đo toàn lô.
+            </p>
+          </details>
 
-          <p class="muted small">
-            Chạy trên phiên đang chọn. Mỗi ảnh được đọc và xử lý tuần tự.
-            Ảnh không đọc được QR được ghi thành lượt lỗi nghiệp vụ.
-            Tệp ảnh hỏng được báo riêng, không tạo lượt xử lý.
-            Mỗi kiện hoàn tất mô phỏng và xác nhận lưu trước khi chuyển
-            sang ảnh tiếp theo. Khoảng nghỉ được tính giữa các ảnh.
-            Thời gian quyết định đo tại backend không gồm đọc ảnh,
-            truyền mạng hoặc hoạt ảnh.
-            Lịch sử và số đo QR đã xác nhận được lưu trong database.
-            Hàng đợi và kết quả chi tiết của lô giữ trong trang hiện tại;
-            hãy tải JSON năng suất để lưu kết quả đo toàn lô.
-          </p>
+          <div class="batch-table-header">
+            <h3>Danh sách kết quả từng ảnh</h3>
+          </div>
 
-          <div class="table-wrap">
+          <div class="table-wrap batch-table-wrap">
             <table>
               <caption class="sr-only">
                 Kết quả lô ảnh trong trang hiện tại
