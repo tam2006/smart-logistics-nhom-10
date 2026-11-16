@@ -1187,3 +1187,325 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+/* PHAN 4 - GIAO DIEN MO PHONG PHAN LOAI */
+
+.conveyor {
+  border: 2px solid #b8d5e3;
+  border-radius: 14px;
+  background-color: #f4f9fc;
+}
+
+.conveyor-scene {
+  display: block;
+  width: 100%;
+  min-width: 520px;
+  height: auto;
+}
+
+.belt-base {
+  stroke: #a9bfce;
+}
+
+.route-lines .route-success {
+  stroke: #0c996e;
+  stroke-width: 9px;
+  filter: drop-shadow(0 0 4px #0c996e55);
+}
+
+.route-lines .route-error {
+  stroke: #d58a24;
+  stroke-width: 9px;
+}
+
+#motionParcel rect {
+  stroke-width: 3px;
+  filter: drop-shadow(0 3px 3px #20314930);
+}
+
+.gates {
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.gate {
+  border: 2px solid #d5e3ec;
+  border-top: 4px solid #a8c4d5;
+  background: #f8fbfd;
+}
+
+.gate.active {
+  border-color: #169b72;
+  background: #e8f8f0;
+  box-shadow: 0 0 0 3px #169b7226;
+}
+
+.gate.active .gate-state {
+  background: #c8eedc;
+  color: #115c42;
+  font-weight: 700;
+}
+
+.latest-result[data-type="success"] {
+  border-left: 4px solid #169b72;
+}
+
+.latest-result[data-type="error"] {
+  border-left: 4px solid #c57932;
+}
+
+/* PHAN 5 - HOAN THIEN GIAO DIEN LICH SU */
+
+.history-heading {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.history-filters {
+  margin-bottom: 22px;
+}
+
+.history-filters fieldset {
+  padding: 18px;
+  border: 1px solid #d2e0e9;
+  border-radius: 12px;
+  background: #f8fbfd;
+}
+
+.history-filters legend {
+  padding: 0 8px;
+  color: #294b66;
+  font-weight: 600;
+}
+
+.history-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    3, minmax(0, 1fr)
+  );
+  gap: 14px;
+}
+
+.history-filter-grid > div {
+  min-width: 0;
+}
+
+.history-filter-grid input,
+.history-filter-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.history-filters .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.history-filters .actions .button {
+  flex: 0 0 auto;
+  min-width: 110px;
+}
+
+.history-filters .muted.small {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.history-heading .count-badge {
+  white-space: nowrap;
+}
+
+.history-footer {
+  gap: 18px;
+  align-items: center;
+}
+
+.history-footer p {
+  line-height: 1.7;
+}
+
+.history-footer #moreButton {
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+@media (max-width: 760px) {
+  .history-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-filters .actions .button {
+    flex: 1 1 120px;
+  }
+
+  .history-footer {
+    align-items: stretch;
+  }
+}
+
+/* =========================================================
+   Phần 3: Khu vực Chạy lô ảnh QR (.batch-card)
+   ========================================================= */
+.batch-card .section-heading {
+  align-items: flex-start;
+}
+
+.batch-subtitle {
+  margin: 2px 0 0;
+}
+
+.batch-controls {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.batch-control-group input,
+.batch-control-group select {
+  margin-bottom: 0;
+}
+
+.batch-actions {
+  margin-bottom: 16px;
+}
+
+.batch-status-box {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border: 1px solid #d4e4ee;
+  border-radius: 12px;
+  background: #f6fafd;
+}
+
+.batch-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.batch-progress-label {
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.batch-status-box progress {
+  height: 12px;
+  margin-bottom: 10px;
+}
+
+.batch-status-box .batch-info {
+  margin: 0;
+  background: #fff;
+  border-left-color: var(--teal);
+}
+
+.batch-guide {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafcfe;
+}
+
+.batch-guide summary {
+  color: #344c64;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.batch-guide summary:hover {
+  color: var(--teal);
+}
+
+.batch-guide p {
+  margin: 10px 0 2px;
+}
+
+.batch-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.batch-table-header h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.batch-table-wrap th:first-child,
+.batch-table-wrap td:first-child {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.batch-table-wrap th:nth-child(6),
+.batch-table-wrap th:nth-child(7),
+.batch-table-wrap th:nth-child(8),
+.batch-table-wrap td:nth-child(6),
+.batch-table-wrap td:nth-child(7),
+.batch-table-wrap td:nth-child(8) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.batch-table-wrap td:last-child {
+  min-width: 160px;
+  white-space: normal;
+}
+
+/* Responsive trên cửa sổ hẹp */
+@media (max-width: 720px) {
+  .batch-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* --- Tinh chỉnh riêng cho Mục 03: Đọc một ảnh QR (Bạn phụ trách) --- */
+.qr-upload-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.qr-upload-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.qr-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.qr-preview-container {
+  margin: 12px 0;
+  text-align: center;
+}
+
+#qrPreview {
+  border-radius: 6px;
+  border: 1px dashed #cbd5e1;
+  background-color: #f8fafc;
+  padding: 4px;
+}
+
+#qrInfo.note {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  background-color: #f1f5f9;
+  color: #334155;
+  border-left: 4px solid #3b82f6;
+}
