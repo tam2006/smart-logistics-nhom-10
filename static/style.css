@@ -1020,3 +1020,95 @@ footer {
     transition: none !important;
   }
 }
+
+
+/* PHAN 5 - HOAN THIEN GIAO DIEN LICH SU */
+
+.history-heading {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.history-filters {
+  margin-bottom: 22px;
+}
+
+.history-filters fieldset {
+  padding: 18px;
+  border: 1px solid #d2e0e9;
+  border-radius: 12px;
+  background: #f8fbfd;
+}
+
+.history-filters legend {
+  padding: 0 8px;
+  color: #294b66;
+  font-weight: 600;
+}
+
+.history-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    3, minmax(0, 1fr)
+  );
+  gap: 14px;
+}
+
+.history-filter-grid > div {
+  min-width: 0;
+}
+
+.history-filter-grid input,
+.history-filter-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.history-filters .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.history-filters .actions .button {
+  flex: 0 0 auto;
+  min-width: 110px;
+}
+
+.history-filters .muted.small {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.history-heading .count-badge {
+  white-space: nowrap;
+}
+
+.history-footer {
+  gap: 18px;
+  align-items: center;
+}
+
+.history-footer p {
+  line-height: 1.7;
+}
+
+.history-footer #moreButton {
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+@media (max-width: 760px) {
+  .history-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-filters .actions .button {
+    flex: 1 1 120px;
+  }
+
+  .history-footer {
+    align-items: stretch;
+  }
+}
