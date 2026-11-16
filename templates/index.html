@@ -32,25 +32,27 @@
   ></script>
 </head>
 
-<body>
-  <header class="header">
+<header class="header">
     <div class="header-inner">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">SL</div>
 
         <div>
-          <p class="eyebrow">SMARTLOGISTICS QR</p>
+          <p class="eyebrow">SMARTLOGISTICS QR · HỆ THỐNG PHÂN LOẠI</p>
           <h1>Trạm phân loại kiện hàng</h1>
         </div>
       </div>
 
-      <span id="connectionStatus" class="connection">
-        Đang kết nối…
-      </span>
+      <div class="header-status-group">
+        <span class="station-pill">3 Cửa phân tuyến</span>
+        <span id="connectionStatus" class="connection">
+          Đang kết nối…
+        </span>
+      </div>
     </div>
 
     <p class="header-description">
-      Mô phỏng phân loại theo điểm đến với ba cửa.
+      Mô phỏng phân loại kiện hàng tự động theo điểm đến với ba cửa (São Paulo, Rio de Janeiro, Belo Horizonte).
       Dữ liệu tham chiếu từ Olist Brazilian E-Commerce.
     </p>
   </header>
@@ -72,56 +74,65 @@
     </div>
 
     <div class="workspace">
-      <aside>
-        <section class="card">
+      <aside class="control-sidebar">
+        <section class="card session-card">
           <div class="section-heading">
             <span class="step">01</span>
-            <h2>Phiên làm việc</h2>
+            <div>
+              <h2>Phiên làm việc</h2>
+              <p class="section-subtitle">Khởi tạo hoặc chọn phiên xử lý</p>
+            </div>
           </div>
 
-          <form id="sessionForm">
+          <form id="sessionForm" class="p1-form">
             <label for="sessionName">Tên phiên mới</label>
 
-            <input
-              id="sessionName"
-              type="text"
-              maxlength="100"
-              placeholder="Ví dụ: Auto demo 01"
-              required
-            >
+            <div class="input-action-stack">
+              <input
+                id="sessionName"
+                type="text"
+                maxlength="100"
+                placeholder="Ví dụ: Auto demo 01"
+                required
+              >
 
-            <button
-              id="createButton"
-              class="button primary"
-              type="submit"
-            >
-              + Tạo phiên mới
-            </button>
+              <button
+                id="createButton"
+                class="button primary"
+                type="submit"
+              >
+                + Tạo phiên mới
+              </button>
+            </div>
           </form>
 
           <div class="divider"></div>
 
-          <label for="sessionSelect">Chọn phiên</label>
+          <div class="session-select-group">
+            <div class="label-row">
+              <label for="sessionSelect">Phiên đang chọn</label>
+              <span class="limit-tag">Tối đa 50 phiên</span>
+            </div>
 
-          <select id="sessionSelect">
-            <option value="">Chưa chọn phiên</option>
-          </select>
+            <select id="sessionSelect">
+              <option value="">Chưa chọn phiên</option>
+            </select>
 
-          <p id="sessionInfo" class="muted">
-            Chưa chọn phiên.
-          </p>
+            <div class="session-info-box">
+              <span class="session-info-label">Trạng thái phiên hiện tại</span>
+              <p id="sessionInfo" class="session-info-text">
+                Chưa chọn phiên.
+              </p>
+            </div>
+          </div>
 
-          <p class="muted small">
-            Hiển thị tối đa 50 phiên gần nhất.
-          </p>
-
-          <div class="actions">
+          <div class="actions session-actions">
             <button
               id="refreshButton"
               class="button secondary"
               type="button"
             >
-              Làm mới
+              ↻ Làm mới
             </button>
 
             <button
@@ -135,17 +146,21 @@
           </div>
         </section>
 
-        <section class="card">
+        <section class="card manual-card">
           <div class="section-heading">
             <span class="step">02</span>
-            <h2>Nhập mã bằng tay</h2>
+            <div>
+              <h2>Nhập mã bằng tay</h2>
+              <p class="section-subtitle">Kiểm tra &amp; điều hướng từng kiện</p>
+            </div>
           </div>
 
-          <form id="parcelForm">
-            <label for="parcelCode">Mã kiện</label>
+          <form id="parcelForm" class="p1-form">
+            <label for="parcelCode">Mã kiện hàng</label>
 
             <input
               id="parcelCode"
+              class="code-input"
               type="text"
               maxlength="64"
               placeholder="Ví dụ: KH001"
@@ -160,14 +175,13 @@
               type="submit"
               disabled
             >
-              Xử lý kiện
+              Xử lý kiện →
             </button>
           </form>
 
-          <p class="muted">
-            Chọn phiên đang mở. Một kiện chỉ được hoàn tất
-            một lần trong cùng phiên.
-          </p>
+          <div class="manual-hint">
+            <strong>Lưu ý thao tác:</strong> Cần chọn một phiên đang mở trước khi nhập. Mỗi mã kiện chỉ hoàn tất một lần trong cùng phiên.
+          </div>
         </section>
       </aside>
 
