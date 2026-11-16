@@ -1020,3 +1020,42 @@ footer {
     transition: none !important;
   }
 }
+/* --- Tinh chỉnh riêng cho Mục 03: Đọc một ảnh QR (Bạn phụ trách) --- */
+.qr-upload-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.qr-upload-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.qr-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.qr-preview-container {
+  margin: 12px 0;
+  text-align: center;
+}
+
+#qrPreview {
+  border-radius: 6px;
+  border: 1px dashed #cbd5e1;
+  background-color: #f8fafc;
+  padding: 4px;
+}
+
+#qrInfo.note {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  background-color: #f1f5f9;
+  color: #334155;
+  border-left: 4px solid #3b82f6;
+}
