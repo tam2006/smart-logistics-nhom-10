@@ -31,7 +31,6 @@
     defer
   ></script>
 </head>
-
 <header class="header">
     <div class="header-inner">
       <div class="brand">
@@ -98,7 +97,7 @@
 
               <button
                 id="createButton"
-                class="button primary"
+                class="button primary pulse-effect"
                 type="submit"
               >
                 + Tạo phiên mới
@@ -160,7 +159,7 @@
 
             <input
               id="parcelCode"
-              class="code-input"
+              class="code-input enhanced-input"
               type="text"
               maxlength="64"
               placeholder="Ví dụ: KH001"
@@ -169,6 +168,21 @@
               required
             >
 
+            <button
+              id="processButton"
+              class="button primary"
+              type="submit"
+              disabled
+            >
+              Xử lý kiện →
+            </button>
+          </form>
+
+          <div class="manual-hint">
+            <strong>Lưu ý thao tác:</strong> Cần chọn một phiên đang mở trước khi nhập. Mỗi mã kiện chỉ hoàn tất một lần trong cùng phiên.
+          </div>
+        </section>
+      </aside>
             <button
               id="processButton"
               class="button primary"
