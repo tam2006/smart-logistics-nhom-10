@@ -1112,3 +1112,50 @@ footer {
     align-items: stretch;
   }
 }
+
+
+
+/* PHAN 5 - CAI THIEN BANG LICH SU */
+
+.table-wrap {
+  border: 1px solid #d6e3ec;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.table-wrap table {
+  width: 100%;
+  font-size: 13px;
+}
+
+.table-wrap th {
+  padding: 14px 12px;
+  background-color: #eaf2f8;
+  color: #294b66;
+  font-weight: 600;
+}
+
+.table-wrap td {
+  padding: 14px 12px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.table-wrap tbody tr:hover {
+  background-color: #edf6fc;
+}
+
+.table-wrap td.reason {
+  min-width: 220px;
+  line-height: 1.6;
+}
+
+.table-wrap .text-success {
+  color: #176b4a;
+  font-weight: 600;
+}
+
+.table-wrap .text-error {
+  color: #a83232;
+  font-weight: 600;
+}
