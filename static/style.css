@@ -1122,3 +1122,55 @@ footer {
   stroke: #c94b4b;
 }
 
+
+
+/* PHAN 4 - CAI THIEN GIAO DIEN 3 CUA */
+
+.gates {
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.gate {
+  border: 2px solid #d4e1ea;
+  border-top: 4px solid #8ca4b9;
+  border-radius: 12px;
+  background: #f8fbfd;
+  padding: 18px 14px;
+  transition: border-color 0.2s ease,
+              background-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.gate-number {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.gate h3 {
+  margin: 10px 0 6px;
+  font-size: 16px;
+}
+
+.gate p {
+  line-height: 1.5;
+}
+
+.gate.active {
+  border-color: #238b62;
+  border-top-color: #238b62;
+  background: #effaf4;
+  box-shadow: 0 0 0 2px #238b6220;
+}
+
+.gate.active .gate-number {
+  color: #176b4a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate {
+    transition: none;
+  }
+}
+
