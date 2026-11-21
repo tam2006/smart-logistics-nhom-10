@@ -1087,3 +1087,38 @@ footer {
 .latest-result[data-type="error"] {
   border-left: 4px solid #c57932;
 }
+
+
+/* PHAN 4 - CAI THIEN HIEN THI BANG CHUYEN */
+
+.conveyor {
+  border: 2px solid #a9bfd1;
+  border-radius: 14px;
+  background-color: #f4f9fc;
+}
+
+.conveyor-scene {
+  display: block;
+  width: 100%;
+  min-width: 520px;
+  height: auto;
+}
+
+.belt-base {
+  stroke: #adbfcd;
+}
+
+.route-lines .route-success {
+  stroke: #238b62;
+  stroke-width: 9px;
+}
+
+#motionParcel rect {
+  stroke-width: 2.5px;
+}
+
+.conveyor[data-state="error"] #motionParcel rect {
+  fill: #ffe5e5;
+  stroke: #c94b4b;
+}
+
