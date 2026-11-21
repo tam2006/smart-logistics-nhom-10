@@ -1159,3 +1159,29 @@ footer {
   color: #a83232;
   font-weight: 600;
 }
+
+
+
+/* PHAN 5 - LAM NOI BAT KET QUA XU LY */
+
+#historyBody .text-success,
+#historyBody .text-error {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#historyBody .text-success {
+  color: #176b4a;
+  background-color: #e8f6ee;
+  border: 1px solid #b9dfc9;
+}
+
+#historyBody .text-error {
+  color: #a83232;
+  background-color: #fff0f0;
+  border: 1px solid #efc3c3;
+}
