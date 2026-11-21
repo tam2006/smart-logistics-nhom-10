@@ -1174,3 +1174,48 @@ footer {
   }
 }
 
+
+/* PHAN 4 - TOI UU GIAO DIEN MAN HINH NHO */
+
+@media (max-width: 768px) {
+  .conveyor {
+    overflow-x: auto;
+    border-radius: 10px;
+  }
+
+  .conveyor-scene {
+    min-width: 520px;
+  }
+
+  .gates {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .gate {
+    padding: 14px 12px;
+  }
+
+  .gate-number {
+    font-size: 26px;
+  }
+
+  .gate h3 {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .conveyor {
+    border-width: 1px;
+  }
+
+  .gate {
+    padding: 12px;
+  }
+
+  .gate-number {
+    font-size: 24px;
+  }
+}
+
