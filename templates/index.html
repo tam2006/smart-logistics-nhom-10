@@ -216,7 +216,7 @@
               type="submit"
               disabled
             >
-              1. Đọc ảnh QR
+1. Đọc ảnh QR
             </button>
           </form>
 
@@ -303,6 +303,15 @@
             >
               ✕ Bỏ hàng đợi
             </button>
+
+            <button
+              id="batchExportJson"
+              class="button secondary"
+              type="button"
+              disabled
+            >
+              ↓ Tải JSON
+            </button>
           </div>
 
           <div class="batch-status-box">
@@ -338,6 +347,21 @@
 
           <div class="batch-table-header">
             <h3>Danh sách kết quả từng ảnh</h3>
+          </div>
+
+          <div class="batch-summary" aria-label="Tóm tắt kết quả lô">
+            <div class="batch-summary-item">
+              <span>Đã xử lý</span>
+              <strong id="batchProcessedCount">0</strong>
+            </div>
+            <div class="batch-summary-item is-success">
+              <span>Thành công</span>
+              <strong id="batchSuccessCount">0</strong>
+            </div>
+            <div class="batch-summary-item is-error">
+              <span>Lỗi / Không đọc được</span>
+              <strong id="batchErrorCount">0</strong>
+            </div>
           </div>
 
           <div class="table-wrap batch-table-wrap">
