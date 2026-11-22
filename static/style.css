@@ -1021,6 +1021,202 @@ footer {
   }
 }
 /* =========================================================
+feature/ui-lo-qr
+   Phần 3: Khu vực Chạy lô ảnh QR (.batch-card)
+   ========================================================= */
+.batch-card .section-heading {
+  align-items: flex-start;
+}
+
+.batch-subtitle {
+  margin: 2px 0 0;
+}
+
+.batch-controls {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.batch-control-group input,
+.batch-control-group select {
+  margin-bottom: 0;
+}
+
+.batch-actions {
+  margin-bottom: 16px;
+}
+
+.batch-status-box {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border: 1px solid #d4e4ee;
+  border-radius: 12px;
+  background: #f6fafd;
+}
+
+.batch-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.batch-progress-label {
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.batch-status-box progress {
+  height: 12px;
+  margin-bottom: 10px;
+}
+
+.batch-status-box .batch-info {
+  margin: 0;
+  background: #fff;
+  border-left-color: var(--teal);
+}
+
+.batch-guide {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafcfe;
+}
+
+.batch-guide summary {
+  color: #344c64;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.batch-guide summary:hover {
+  color: var(--teal);
+}
+
+.batch-guide p {
+  margin: 10px 0 2px;
+}
+
+.batch-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.batch-table-header h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.batch-table-wrap th:first-child,
+.batch-table-wrap td:first-child {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.batch-table-wrap th:nth-child(6),
+.batch-table-wrap th:nth-child(7),
+.batch-table-wrap th:nth-child(8),
+.batch-table-wrap td:nth-child(6),
+.batch-table-wrap td:nth-child(7),
+.batch-table-wrap td:nth-child(8) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.batch-table-wrap td:last-child {
+  min-width: 160px;
+  white-space: normal;
+}
+
+/* Responsive trên cửa sổ hẹp */
+@media (max-width: 720px) {
+  .batch-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+.batch-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.batch-summary-item {
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #f8fbfd;
+}
+
+.batch-summary-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.batch-summary-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--navy);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.batch-summary-item.is-success {
+  border-color: #bce3ce;
+  background: #edf9f2;
+}
+
+.batch-summary-item.is-success strong {
+  color: #147a56;
+}
+
+.batch-summary-item.is-error {
+  border-color: #f4dadd;
+  background: #fff2f4;
+}
+
+.batch-summary-item.is-error strong {
+  color: #a83b4c;
+}
+
+.batch-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.batch-badge--success {
+  background: #e3f6ec;
+  color: #147a56;
+}
+
+.batch-badge--error {
+  background: #fdecef;
+  color: #a83b4c;
+}
+
+@media (max-width: 600px) {
+  .batch-summary {
+    grid-template-columns: 1fr;
+  }
+}
+=======
    PHẦN 1: ĐẦU TRANG, PHIÊN LÀM VIỆC & NHẬP TAY
    ========================================================= */
 
@@ -1187,3 +1383,4 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+feature/hoan-thien-danh-gia
