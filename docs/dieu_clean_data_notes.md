@@ -13,3 +13,7 @@
 ## 8. Dong bo ma QR va du lieu tham chieu
 - Kiem tra su khop nhau giua noi dung giai ma QR, ma kien trong bang du lieu va dap an doi chieu.
 - Luu y cac ca anh QR co ten file khac noi dung hoac chat luong anh kem khi test thuc te.
+
+## 9. Ra soat sai lech va ghi nhan bao cao
+- Khi phat hien sai lech giua ket qua thuc te va mong doi, ghi ro dieu kien chay va nguyen nhan.
+- Khong suy doan trang thai Dat khi chua co ket qua chay thuc te tren bo du lieu tuong ung.
