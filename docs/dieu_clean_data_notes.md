@@ -40,3 +40,7 @@
 ## 15. Kiem tra cac truong hop ma loi va ma khong ton tai
 - Ra soat cach he thong phan hoi khi gap ma sai cau truc hoac ma khong co trong du lieu.
 - Dam bao cac ca ngoai le duoc tach bach ro rang khoi luot phan loai thanh cong.
+
+## 16. Kiem tra tinh huong quet trung trong cung phien
+- Theo doi cach phat hien va chan quet trung khi kien da duoc ghi nhan trong phien hien tai.
+- Dam bao so lieu thong ke cua va tong luot khong bi cong don sai do quet lap.
