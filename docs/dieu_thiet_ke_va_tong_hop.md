@@ -13,3 +13,6 @@
 
 ## 3. Khung tong hop bao cao va slide
 - Tong hop quy trinh nghiep vu, so do thiet ke, chuan bi du lieu/QR, bo test case va ket qua doi chieu.
+
+## 4. Ghi chu ban giao slide & kiem thu
+- Doi chieu ket qua thuc te voi bo du lieu chuan va danh sach loi ton tai.
