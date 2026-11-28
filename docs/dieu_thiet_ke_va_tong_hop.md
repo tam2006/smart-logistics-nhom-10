@@ -37,3 +37,7 @@
 - Trang thai kiem thu: Dat, Chua dat, Chua chay, Bi chan.
 - Doi chieu ket qua thuc te voi du lieu chuan (demo KH001-KH030, final_test KH031-KH060) va ghi ro loi ton tai.
 - Luu minh chung day du cho cac ca da chay va de xuat bo sung khi can.
+
+## 8. Hoan thien slide thuyet trinh va ra soat cuoi
+- Ra soat su dong bo giua so do thiet ke, mo ta du lieu QR, test case va ket qua thuc nghiem.
+- Chuan bi slide trinh bay ngan gon, truc quan cho buoi bao cao va demo.
