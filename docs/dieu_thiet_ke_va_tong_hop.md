@@ -16,3 +16,9 @@
 
 ## 4. Ghi chu ban giao slide & kiem thu
 - Doi chieu ket qua thuc te voi bo du lieu chuan va danh sach loi ton tai.
+
+## 4. Chi tiet 4 so do dau tien
+- So do Ngu canh (Context): Nhan vien phan loai <-> He thong mo phong phan loai QR.
+- So do Use Case: Quan ly phien (tao, chon, dong), Nhap ma/Quet QR, Tra cuu diem den & quy tac cua, Mo phong phan loai, Xu ly loi/trung, Xem lich su & thong ke.
+- So do Hoat dong (1 kien): Kiem tra phien mo -> Kiem tra ma hop le/ton tai -> Kiem tra quet trung -> Tra cuu quy tac cua -> Mo phong & ghi nhan.
+- So do Hoat dong (Chay lo): Nap bo demo 30 kien (KH001-KH030) -> Xu ly tuan tu -> Tam dung/Tiep tuc khong bo sot hay lap kien.
