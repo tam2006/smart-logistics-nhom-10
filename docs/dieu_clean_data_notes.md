@@ -36,3 +36,7 @@
 ## 14. Doi chieu bo kiem thu cuoi 30 kien
 - Kiem tra danh sach 30 kien (KH031-KH060) cung bang dap an tham chieu tuong ung.
 - Ghi nhan cac diem can doi chieu khi so sanh ket qua thuc te va kiem thu thu cong.
+
+## 15. Kiem tra cac truong hop ma loi va ma khong ton tai
+- Ra soat cach he thong phan hoi khi gap ma sai cau truc hoac ma khong co trong du lieu.
+- Dam bao cac ca ngoai le duoc tach bach ro rang khoi luot phan loai thanh cong.
