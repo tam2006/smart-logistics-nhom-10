@@ -35,3 +35,6 @@
 ## 9. Ra soat dong bo nhan trang thai tren giao dien
 - Doi chieu cac nhan ket qua (Thanh cong, Loi, Trung) giua giao dien, tai lieu va bang kiem thu.
 - Ghi nhan cac diem can chot de trinh bay ro rang khi thuyet trinh.
+
+## 10. Chot ghi chu frontend tren nhanh ca nhan
+- Tong hop day du cac muc theo doi giao dien phuc vu demo, kiem thu va bao cao nhom.
