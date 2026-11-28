@@ -20,3 +20,7 @@
 
 ## 10. Hoan tat ra soat du lieu phuc vu tong hop
 - Tong hop day du cac ghi chu du lieu sach, bo du lieu mau va doi chieu phuc vu bao cao nhom 10.
+
+## 11. Ra soat dinh dang ma kien va chuan hoa ky tu
+- Kiem tra tinh thong nhat cua ma kien truoc khi tra cuu va ghi nhan lich su.
+- Tranh sai lech do chu hoa/chu thuong hoac ky tu thua trong qua trinh nhap lieu.
