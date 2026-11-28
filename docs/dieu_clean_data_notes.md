@@ -28,3 +28,7 @@
 ## 12. Kiem tra quy tac phan tuyen cua 1, 2, 3
 - Doi chieu diem den cua tung kien voi bang quy tac phan tuyen de xac dinh dung cua dich.
 - Dam bao moi cua trong bo demo va bo kiem thu deu co du lieu mau ro rang.
+
+## 13. Doi chieu bo du lieu demo 30 kien
+- Kiem tra day du danh sach 30 kien (KH001-KH030) phuc vu chay mo phong va trinh bay.
+- Ghi nhan so luong tung cua de doi chieu nhanh khi demo tren giao dien.
