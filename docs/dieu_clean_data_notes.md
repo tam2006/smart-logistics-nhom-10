@@ -6,3 +6,6 @@
 ## 6. Chuan hoa ket qua xuat bao cao va lich su phien
 - Dam bao cac cot xuat du lieu (ma kien, diem den, cua, trang thai, thoi gian) day du va nhat quan.
 - Doi chieu tong so luot xu ly va so dem tung cua giua bang thong ke va lich su chi tiet.
+
+## 7. Chot ra soat du lieu sach
+- Hoan tat tong hop ghi chu du lieu sach, bo test chuan va cac ca ngoai le phuc vu bao cao nhom.
