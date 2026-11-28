@@ -19,3 +19,7 @@
 ## 5. Doi chieu hien thi giao dien voi du lieu mau
 - Kiem tra khop ket qua cua (Cua 1, Cua 2, Cua 3) va trang thai xu ly khi thu voi bo du lieu mau.
 - Ghi nhan cac diem can chu y khi chup anh minh chung cho phan ket qua thuc nghiem.
+
+## 6. Kiem tra trang thai loi, trung lap va phien
+- Ra soat cach giao dien hien thi khi gap ma sai, ma khong ton tai, quet trung hoac phien da dong.
+- Dam bao thong tin trang thai ro rang, de doc khi quay video hoac chup man hinh demo.
