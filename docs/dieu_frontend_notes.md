@@ -27,3 +27,7 @@
 ## 7. Tong hop ban giao phan giao dien
 - Hop nhat cac ghi chu thao tac, bo doc QR, thong ke cua va danh sach kiem tra giao dien.
 - San sang doi chieu cung bao cao tong hop va slide thuyet trinh cua nhom.
+
+## 8. Mo va kiem tra nhanh giao dien local
+- Kiem tra giao dien mo phong tai dia chi local khi server dang hoat dong.
+- Ra soat nhanh cac khu vuc chinh: dieu khien phien, nhap/quet QR, mo phong cua va bang lich su.
