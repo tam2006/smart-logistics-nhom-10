@@ -31,3 +31,7 @@
 ## 8. Mo va kiem tra nhanh giao dien local
 - Kiem tra giao dien mo phong tai dia chi local khi server dang hoat dong.
 - Ra soat nhanh cac khu vuc chinh: dieu khien phien, nhap/quet QR, mo phong cua va bang lich su.
+
+## 9. Ra soat dong bo nhan trang thai tren giao dien
+- Doi chieu cac nhan ket qua (Thanh cong, Loi, Trung) giua giao dien, tai lieu va bang kiem thu.
+- Ghi nhan cac diem can chot de trinh bay ro rang khi thuyet trinh.
