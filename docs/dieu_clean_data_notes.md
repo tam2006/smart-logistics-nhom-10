@@ -24,3 +24,7 @@
 ## 11. Ra soat dinh dang ma kien va chuan hoa ky tu
 - Kiem tra tinh thong nhat cua ma kien truoc khi tra cuu va ghi nhan lich su.
 - Tranh sai lech do chu hoa/chu thuong hoac ky tu thua trong qua trinh nhap lieu.
+
+## 12. Kiem tra quy tac phan tuyen cua 1, 2, 3
+- Doi chieu diem den cua tung kien voi bang quy tac phan tuyen de xac dinh dung cua dich.
+- Dam bao moi cua trong bo demo va bo kiem thu deu co du lieu mau ro rang.
