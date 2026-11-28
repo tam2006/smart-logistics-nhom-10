@@ -44,3 +44,7 @@
 ## 16. Kiem tra tinh huong quet trung trong cung phien
 - Theo doi cach phat hien va chan quet trung khi kien da duoc ghi nhan trong phien hien tai.
 - Dam bao so lieu thong ke cua va tong luot khong bi cong don sai do quet lap.
+
+## 17. Kiem tra anh qr loi, anh mo hoac thieu ma qr
+- Ra soat cac mau anh kiem thu khong doc duoc QR hoac mat net tren trinh duyet.
+- Ghi nhan cach hien thi canh bao de nguoi dung thao tac ro rang khi test.
