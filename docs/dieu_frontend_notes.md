@@ -23,3 +23,7 @@
 ## 6. Kiem tra trang thai loi, trung lap va phien
 - Ra soat cach giao dien hien thi khi gap ma sai, ma khong ton tai, quet trung hoac phien da dong.
 - Dam bao thong tin trang thai ro rang, de doc khi quay video hoac chup man hinh demo.
+
+## 7. Tong hop ban giao phan giao dien
+- Hop nhat cac ghi chu thao tac, bo doc QR, thong ke cua va danh sach kiem tra giao dien.
+- San sang doi chieu cung bao cao tong hop va slide thuyet trinh cua nhom.
