@@ -48,3 +48,7 @@
 ## 17. Kiem tra anh qr loi, anh mo hoac thieu ma qr
 - Ra soat cac mau anh kiem thu khong doc duoc QR hoac mat net tren trinh duyet.
 - Ghi nhan cach hien thi canh bao de nguoi dung thao tac ro rang khi test.
+
+## 18. Tong hop ra soat du lieu sach phuc vu bao cao
+- Hoan tat ghi chu cac nhom du lieu chuan, bo test va ca ngoai le cho phan tong hop.
+- San sang doi chieu cung bang ket qua, slide thuyet trinh va tai lieu bao cao.
