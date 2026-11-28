@@ -17,3 +17,6 @@
 ## 9. Ra soat sai lech va ghi nhan bao cao
 - Khi phat hien sai lech giua ket qua thuc te va mong doi, ghi ro dieu kien chay va nguyen nhan.
 - Khong suy doan trang thai Dat khi chua co ket qua chay thuc te tren bo du lieu tuong ung.
+
+## 10. Hoan tat ra soat du lieu phuc vu tong hop
+- Tong hop day du cac ghi chu du lieu sach, bo du lieu mau va doi chieu phuc vu bao cao nhom 10.
