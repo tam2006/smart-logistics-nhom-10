@@ -22,3 +22,8 @@
 - So do Use Case: Quan ly phien (tao, chon, dong), Nhap ma/Quet QR, Tra cuu diem den & quy tac cua, Mo phong phan loai, Xu ly loi/trung, Xem lich su & thong ke.
 - So do Hoat dong (1 kien): Kiem tra phien mo -> Kiem tra ma hop le/ton tai -> Kiem tra quet trung -> Tra cuu quy tac cua -> Mo phong & ghi nhan.
 - So do Hoat dong (Chay lo): Nap bo demo 30 kien (KH001-KH030) -> Xu ly tuan tu -> Tam dung/Tiep tuc khong bo sot hay lap kien.
+
+## 5. Chi tiet mo ta du lieu va chuan bi QR
+- Du lieu chinh: ma_kien, diem_den, bang quy tac anh xa diem den -> cua phan loai (Cua 1, Cua 2, Cua 3).
+- Bo du lieu: demo KH001-KH030 (moi cua 10 kien) va final_test KH031-KH060 (moi cua 10 kien).
+- Chuan bi QR: anh QR dung noi dung ma kien, doi ten file van doc dung tu noi dung QR; bo sung ca loi (ABC123, KH999, ma trong, anh mo/khong co QR, quet trung).
