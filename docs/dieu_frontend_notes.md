@@ -11,3 +11,7 @@
 ## 3. Trang danh gia QR & dinh dang giao dien
 - Theo doi giao dien danh gia QR (qr_evaluation.html) va cac file dinh dang (style.css, dashboard-refresh.css).
 - Ra soat do ro rang cua bang lich su, nhan trang thai va kha nang quan sat khi chay mo phong/lo.
+
+## 4. Checklist ra soat giao dien phuc vu demo
+- Kiem tra hien thi lich su, bo loc, trang thai loi/trung va so dem tung cua truoc khi chup minh chung.
+- Dong bo mo ta giao dien len slide thuyet trinh va bao cao cuoi cung cua nhom.
