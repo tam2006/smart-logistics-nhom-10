@@ -15,3 +15,7 @@
 ## 4. Checklist ra soat giao dien phuc vu demo
 - Kiem tra hien thi lich su, bo loc, trang thai loi/trung va so dem tung cua truoc khi chup minh chung.
 - Dong bo mo ta giao dien len slide thuyet trinh va bao cao cuoi cung cua nhom.
+
+## 5. Doi chieu hien thi giao dien voi du lieu mau
+- Kiem tra khop ket qua cua (Cua 1, Cua 2, Cua 3) va trang thai xu ly khi thu voi bo du lieu mau.
+- Ghi nhan cac diem can chu y khi chup anh minh chung cho phan ket qua thuc nghiem.
