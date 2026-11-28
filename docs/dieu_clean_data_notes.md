@@ -9,3 +9,7 @@
 
 ## 7. Chot ra soat du lieu sach
 - Hoan tat tong hop ghi chu du lieu sach, bo test chuan va cac ca ngoai le phuc vu bao cao nhom.
+
+## 8. Dong bo ma QR va du lieu tham chieu
+- Kiem tra su khop nhau giua noi dung giai ma QR, ma kien trong bang du lieu va dap an doi chieu.
+- Luu y cac ca anh QR co ten file khac noi dung hoac chat luong anh kem khi test thuc te.
