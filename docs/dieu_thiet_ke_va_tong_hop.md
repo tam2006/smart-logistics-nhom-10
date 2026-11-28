@@ -27,3 +27,8 @@
 - Du lieu chinh: ma_kien, diem_den, bang quy tac anh xa diem den -> cua phan loai (Cua 1, Cua 2, Cua 3).
 - Bo du lieu: demo KH001-KH030 (moi cua 10 kien) va final_test KH031-KH060 (moi cua 10 kien).
 - Chuan bi QR: anh QR dung noi dung ma kien, doi ten file van doc dung tu noi dung QR; bo sung ca loi (ABC123, KH999, ma trong, anh mo/khong co QR, quet trung).
+
+## 6. Khung tong hop bao cao, slide va ghi chu doi chieu
+- Khung bao cao: Tong quan de tai -> Quy trinh & baseline -> Thiet ke he thong -> Du lieu, QR & test case -> Ket qua thuc nghiem & danh sach loi -> Ket luan.
+- Slide thuyet trinh: Gioi thieu, nghiep vu/baseline, so do thiet ke, chuan bi du lieu/QR, ket qua kiem thu va doi chieu.
+- Doi chieu: chi ghi Dat khi da chay thuc te, doi chieu dung bo du lieu chuan va liet ke ro loi ton tai.
