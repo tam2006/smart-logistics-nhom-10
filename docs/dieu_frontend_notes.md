@@ -7,3 +7,7 @@
 ## 2. Giai ma QR phia trinh duyet & thong ke cua
 - Ket hop qr_decoder.js, jsQR.js va gate_stats.js de ho tro doc ma QR va cap nhat so lieu theo cua.
 - Doi chieu ket qua hien thi tren giao dien voi trang thai thanh cong, loi ma/anh hoac quet trung.
+
+## 3. Trang danh gia QR & dinh dang giao dien
+- Theo doi giao dien danh gia QR (qr_evaluation.html) va cac file dinh dang (style.css, dashboard-refresh.css).
+- Ra soat do ro rang cua bang lich su, nhan trang thai va kha nang quan sat khi chay mo phong/lo.
