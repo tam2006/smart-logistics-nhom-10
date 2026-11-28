@@ -32,3 +32,7 @@
 ## 13. Doi chieu bo du lieu demo 30 kien
 - Kiem tra day du danh sach 30 kien (KH001-KH030) phuc vu chay mo phong va trinh bay.
 - Ghi nhan so luong tung cua de doi chieu nhanh khi demo tren giao dien.
+
+## 14. Doi chieu bo kiem thu cuoi 30 kien
+- Kiem tra danh sach 30 kien (KH031-KH060) cung bang dap an tham chieu tuong ung.
+- Ghi nhan cac diem can doi chieu khi so sanh ket qua thuc te va kiem thu thu cong.
