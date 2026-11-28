@@ -32,3 +32,8 @@
 - Khung bao cao: Tong quan de tai -> Quy trinh & baseline -> Thiet ke he thong -> Du lieu, QR & test case -> Ket qua thuc nghiem & danh sach loi -> Ket luan.
 - Slide thuyet trinh: Gioi thieu, nghiep vu/baseline, so do thiet ke, chuan bi du lieu/QR, ket qua kiem thu va doi chieu.
 - Doi chieu: chi ghi Dat khi da chay thuc te, doi chieu dung bo du lieu chuan va liet ke ro loi ton tai.
+
+## 7. Quy uoc trang thai kiem thu va ban giao bang chung
+- Trang thai kiem thu: Dat, Chua dat, Chua chay, Bi chan.
+- Doi chieu ket qua thuc te voi du lieu chuan (demo KH001-KH030, final_test KH031-KH060) va ghi ro loi ton tai.
+- Luu minh chung day du cho cac ca da chay va de xuat bo sung khi can.
